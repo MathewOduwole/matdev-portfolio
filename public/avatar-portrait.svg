@@ -1,0 +1,189 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-100 0 800 1000" preserveAspectRatio="xMidYMid meet" id="avatarSvg">
+  <defs>
+    <linearGradient id="av-skin" x1="0.25" y1="0" x2="0.85" y2="1">
+      <stop offset="0" stop-color="#7C4A22"></stop>
+      <stop offset="0.55" stop-color="#5A3418"></stop>
+      <stop offset="1" stop-color="#3F2410"></stop>
+    </linearGradient>
+    <radialGradient id="av-skinHi" cx="0.4" cy="0.35" r="0.4">
+      <stop offset="0" stop-color="#A06038" stop-opacity="0.6"></stop>
+      <stop offset="1" stop-color="#A06038" stop-opacity="0"></stop>
+    </radialGradient>
+    <linearGradient id="av-tee" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#B6CCD8"></stop>
+      <stop offset="1" stop-color="#7088A0"></stop>
+    </linearGradient>
+    <radialGradient id="av-hairR" cx="0.5" cy="0.45" r="0.7">
+      <stop offset="0" stop-color="#2A1810"></stop>
+      <stop offset="0.7" stop-color="#0E0604"></stop>
+      <stop offset="1" stop-color="#000000"></stop>
+    </radialGradient>
+    <pattern id="av-dots" x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse">
+      <circle cx="3" cy="3" r="0.55" fill="#1A0F08" opacity="0.16"></circle>
+    </pattern>
+  </defs>
+
+  
+  <ellipse id="av-shadow" cx="300" cy="940" rx="170" ry="13" fill="#1A0F08" opacity="0.22"></ellipse>
+
+  
+  <g id="av-shoulders">
+    <path d="M -100,1000 L -100,880&#xA;             Q -50,790 80,750&#xA;             Q 180,720 240,710&#xA;             L 360,710&#xA;             Q 420,720 520,750&#xA;             Q 650,790 700,880&#xA;             L 700,1000 Z" fill="url(#av-tee)" stroke="#1A0F08" stroke-width="3" stroke-linejoin="round"></path>
+    
+    <path d="M 240,710 Q 300,748 360,710 Q 350,728 340,742 Q 300,756 260,742 Q 250,728 240,710 Z" fill="#5E7A8A" stroke="#1A0F08" stroke-width="2.5" stroke-linejoin="round"></path>
+    
+    <rect x="-100" y="970" width="800" height="6" fill="#C13A2A" opacity="0.7"></rect>
+    <rect x="-100" y="982" width="800" height="3" fill="#1A0F08" opacity="0.6"></rect>
+    
+    <path d="M -100,880 Q -50,795 80,755 L 80,1000 L -100,1000 Z" fill="#1A0F08" opacity="0.14"></path>
+    <path d="M 700,880 Q 650,795 520,755 L 520,1000 L 700,1000 Z" fill="#1A0F08" opacity="0.12"></path>
+    
+    <path d="M -100,1000 L -100,880 Q -50,790 80,750 Q 180,720 240,710 L 360,710 Q 420,720 520,750 Q 650,790 700,880 L 700,1000 Z" fill="url(#av-dots)" opacity="0.45"></path>
+  </g>
+
+  
+  <g id="av-neck">
+    <path d="M 258,605 L 258,720 Q 300,742 342,720 L 342,605 Z" fill="url(#av-skin)" stroke="#1A0F08" stroke-width="2.5" stroke-linejoin="round"></path>
+    <path d="M 258,675 Q 300,700 342,675 L 342,720 Q 300,742 258,720 Z" fill="#1A0F08" opacity="0.32"></path>
+  </g>
+
+  
+  <g id="av-head">
+    
+    <g id="av-hair-back">
+      
+      <path d="M 175,190&#xA;               Q 175,135 215,115&#xA;               Q 250,100 300,98&#xA;               Q 350,100 385,115&#xA;               Q 425,135 425,190&#xA;               L 425,420&#xA;               Q 425,455 405,475&#xA;               Q 380,495 340,500&#xA;               L 260,500&#xA;               Q 220,495 195,475&#xA;               Q 175,455 175,420 Z" fill="url(#av-hairR)"></path>
+      
+      <g fill="#0A0604">
+        <circle cx="195" cy="135" r="18"></circle>
+        <circle cx="220" cy="112" r="20"></circle>
+        <circle cx="250" cy="98" r="22"></circle>
+        <circle cx="285" cy="90" r="24"></circle>
+        <circle cx="320" cy="92" r="22"></circle>
+        <circle cx="350" cy="100" r="22"></circle>
+        <circle cx="380" cy="115" r="20"></circle>
+        <circle cx="405" cy="135" r="18"></circle>
+        
+        <circle cx="170" cy="180" r="16"></circle>
+        <circle cx="165" cy="225" r="16"></circle>
+        <circle cx="162" cy="275" r="17"></circle>
+        <circle cx="162" cy="325" r="17"></circle>
+        <circle cx="165" cy="375" r="16"></circle>
+        <circle cx="172" cy="425" r="16"></circle>
+        <circle cx="185" cy="475" r="16"></circle>
+        <circle cx="430" cy="180" r="16"></circle>
+        <circle cx="435" cy="225" r="16"></circle>
+        <circle cx="438" cy="275" r="17"></circle>
+        <circle cx="438" cy="325" r="17"></circle>
+        <circle cx="435" cy="375" r="16"></circle>
+        <circle cx="428" cy="425" r="16"></circle>
+        <circle cx="415" cy="475" r="16"></circle>
+      </g>
+      
+      <g fill="#3A2010" opacity="0.85">
+        <circle cx="220" cy="180" r="5"></circle>
+        <circle cx="260" cy="165" r="5"></circle>
+        <circle cx="300" cy="158" r="5"></circle>
+        <circle cx="340" cy="165" r="5"></circle>
+        <circle cx="380" cy="180" r="5"></circle>
+        <circle cx="200" cy="240" r="4"></circle>
+        <circle cx="400" cy="240" r="4"></circle>
+        <circle cx="195" cy="320" r="4"></circle>
+        <circle cx="405" cy="320" r="4"></circle>
+        <circle cx="200" cy="400" r="4"></circle>
+        <circle cx="400" cy="400" r="4"></circle>
+        <circle cx="220" cy="460" r="4"></circle>
+        <circle cx="380" cy="460" r="4"></circle>
+      </g>
+      
+      <ellipse cx="270" cy="170" rx="35" ry="9" fill="#7A4920" opacity="0.50" transform="rotate(-12 270 170)"></ellipse>
+      <ellipse cx="345" cy="175" rx="32" ry="8" fill="#7A4920" opacity="0.45" transform="rotate(10 345 175)"></ellipse>
+      
+      <ellipse cx="200" cy="280" rx="5" ry="60" fill="#7A4920" opacity="0.18"></ellipse>
+    </g>
+
+    
+    <g id="av-face">
+      
+      <path d="M 220,460&#xA;               Q 210,545 224,605&#xA;               Q 245,670 300,700&#xA;               Q 355,670 376,605&#xA;               Q 390,545 380,460&#xA;               Q 372,420 300,418&#xA;               Q 228,420 220,460 Z" fill="url(#av-skin)" stroke="#1A0F08" stroke-width="2.5" stroke-linejoin="round"></path>
+      
+      <ellipse cx="252" cy="555" rx="38" ry="28" fill="url(#av-skinHi)"></ellipse>
+      
+      <path d="M 300,420 Q 372,420 380,460 Q 390,545 376,605 Q 355,670 300,700 Z" fill="#1A0F08" opacity="0.18"></path>
+      
+      <ellipse cx="300" cy="455" rx="50" ry="10" fill="#A06038" opacity="0.30"></ellipse>
+    </g>
+
+    
+    <g id="av-features">
+      
+      <path d="M 232,505 Q 258,498 286,508" fill="none" stroke="#0A0604" stroke-width="6" stroke-linecap="round"></path>
+      <path d="M 314,508 Q 342,498 368,505" fill="none" stroke="#0A0604" stroke-width="6" stroke-linecap="round"></path>
+
+      
+      <g id="av-eyes">
+        <path d="M 232,530 Q 258,520 284,528 Q 282,538 258,541 Q 234,538 232,530 Z" fill="#FFF8E8" stroke="#0A0604" stroke-width="2.5" stroke-linejoin="round"></path>
+        <ellipse cx="260" cy="531" rx="7" ry="8" fill="#3A1F08"></ellipse>
+        <g id="av-pupil-l">
+          <circle cx="260" cy="531" r="3" fill="#0A0604"></circle>
+          <circle cx="262" cy="529" r="1.4" fill="#FFF8E8"></circle>
+        </g>
+
+        <path d="M 316,528 Q 342,520 368,530 Q 366,538 342,541 Q 318,538 316,528 Z" fill="#FFF8E8" stroke="#0A0604" stroke-width="2.5" stroke-linejoin="round"></path>
+        <ellipse cx="340" cy="531" rx="7" ry="8" fill="#3A1F08"></ellipse>
+        <g id="av-pupil-r">
+          <circle cx="340" cy="531" r="3" fill="#0A0604"></circle>
+          <circle cx="342" cy="529" r="1.4" fill="#FFF8E8"></circle>
+        </g>
+
+        <path d="M 234,538 Q 258,544 282,536" fill="none" stroke="#0A0604" stroke-width="1.4" opacity="0.5" stroke-linecap="round"></path>
+        <path d="M 318,536 Q 342,544 366,538" fill="none" stroke="#0A0604" stroke-width="1.4" opacity="0.5" stroke-linecap="round"></path>
+      </g>
+
+      
+      <path d="M 296,548 Q 290,580 286,605 Q 292,614 300,614 Q 308,614 314,605 Q 310,580 304,548" fill="none" stroke="#1A0F08" stroke-width="2.4" stroke-linecap="round" opacity="0.75"></path>
+      <ellipse cx="291" cy="610" rx="3.5" ry="2" fill="#0A0604" opacity="0.7"></ellipse>
+      <ellipse cx="309" cy="610" rx="3.5" ry="2" fill="#0A0604" opacity="0.7"></ellipse>
+      <path d="M 300,558 Q 302,584 302,604" fill="none" stroke="#A06038" stroke-width="2" opacity="0.4" stroke-linecap="round"></path>
+
+      
+      <g fill="#0A0604" opacity="0.55">
+        <ellipse cx="282" cy="628" rx="12" ry="3.5"></ellipse>
+        <ellipse cx="318" cy="628" rx="12" ry="3.5"></ellipse>
+        <ellipse cx="300" cy="628" rx="5" ry="2.5"></ellipse>
+      </g>
+
+      
+      <path d="M 270,650 Q 285,654 300,655 Q 315,654 330,650" fill="none" stroke="#0A0604" stroke-width="3" stroke-linecap="round"></path>
+      
+      <path d="M 278,656 Q 300,668 322,656 Q 310,663 300,663 Q 290,663 278,656 Z" fill="#2A180A" opacity="0.4"></path>
+
+      
+      <g fill="#0A0604">
+        <circle cx="258" cy="650" r="0.9"></circle>
+        <circle cx="266" cy="660" r="1"></circle>
+        <circle cx="276" cy="668" r="1.1"></circle>
+        <circle cx="288" cy="676" r="1.1"></circle>
+        <circle cx="300" cy="680" r="1.2"></circle>
+        <circle cx="312" cy="676" r="1.1"></circle>
+        <circle cx="324" cy="668" r="1.1"></circle>
+        <circle cx="334" cy="660" r="1"></circle>
+        <circle cx="342" cy="650" r="0.9"></circle>
+        <circle cx="296" cy="672" r="0.9"></circle>
+        <circle cx="304" cy="672" r="0.9"></circle>
+      </g>
+      <ellipse cx="300" cy="682" rx="30" ry="5" fill="#1A0F08" opacity="0.18"></ellipse>
+    </g>
+
+    
+    <g id="av-hair-front">
+      <g fill="#0A0604">
+        <ellipse cx="218" cy="450" rx="10" ry="6" transform="rotate(-25 218 450)"></ellipse>
+        <ellipse cx="382" cy="450" rx="10" ry="6" transform="rotate(25 382 450)"></ellipse>
+      </g>
+    </g>
+  </g>
+
+  
+  <rect x="-100" y="0" width="800" height="1000" fill="url(#av-dots)" opacity="0.18" pointer-events="none"></rect>
+</svg>
