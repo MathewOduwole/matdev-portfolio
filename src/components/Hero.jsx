@@ -178,7 +178,7 @@ const Hero = () => {
         }}
       >
         <div
-          className="container"
+          className="container hero-grid"
           style={{
             width: '100%', display: 'grid',
             gridTemplateColumns: '1.05fr 0.95fr',
@@ -257,6 +257,7 @@ const Hero = () => {
             </div>
 
             <div
+              className="hero-meta-strip"
               style={{
                 marginTop: 64, display: 'flex', gap: 36,
                 fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.18em',
@@ -278,8 +279,8 @@ const Hero = () => {
             </div>
           </div>
 
-          {/* Right — animated diagram */}
-          <div style={{ position: 'relative', height: 700, maxHeight: '85vh' }}>
+          {/* Right — animated diagram (decorative; hidden on mobile) */}
+          <div className="hero-diagram" style={{ position: 'relative', height: 700, maxHeight: '85vh' }}>
             <HeroDiagram progress={progress} />
             <div
               aria-hidden="true"
@@ -301,8 +302,9 @@ const Hero = () => {
           </div>
         </div>
 
-        {/* Bottom marquee — running stack list (tech names, not translated) */}
+        {/* Bottom marquee — running stack list (tech names, not translated; hidden on mobile) */}
         <div
+          className="hero-marquee"
           style={{
             position: 'absolute', bottom: 0, left: 0, right: 0,
             padding: '16px 0',

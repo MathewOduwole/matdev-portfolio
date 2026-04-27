@@ -56,6 +56,7 @@ const RegressionToy = () => {
   return (
     <div style={{ marginTop: 36 }}>
       <div
+        className="playground-toy"
         style={{
           display: 'grid', gridTemplateColumns: '1.5fr 1fr',
           gap: 28, alignItems: 'start',
@@ -166,6 +167,7 @@ const Playground = () => {
         <FadeIn><Eyebrow>{t('04 — Playground', '04 — Playground')}</Eyebrow></FadeIn>
         <FadeIn delay={0.1}>
           <div
+            className="playground-intro"
             style={{
               display: 'grid', gridTemplateColumns: '1.4fr 1fr',
               gap: 60, marginTop: 24, alignItems: 'end',

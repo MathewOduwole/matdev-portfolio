@@ -15,6 +15,7 @@ const ProjectCard = ({ p }) => {
   return (
     <div
       data-cursor="hover"
+      data-card="project"
       onClick={() => setFlipped((f) => !f)}
       style={{
         flex: '0 0 auto', width: CARD_WIDTH, height: 640,
@@ -334,6 +335,7 @@ const Work = () => {
       <div className="container">
         <Eyebrow>{t('03 — Selected work', '03 — Projets sélectionnés')}</Eyebrow>
         <div
+          className="work-header"
           style={{
             marginTop: 16,
             display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end',

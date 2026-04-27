@@ -105,6 +105,7 @@ const Stack = () => {
           {stackGroups.map((g, i) => (
             <FadeIn key={g.group} delay={i * 0.04}>
               <div
+                className="stack-row"
                 style={{
                   display: 'grid', gridTemplateColumns: '220px 1fr', gap: 40,
                   paddingTop: 22, paddingBottom: 22, borderTop: '1px solid var(--line)',
@@ -146,6 +147,7 @@ const Stack = () => {
             {experience.map((e, i) => (
               <FadeIn key={`${e.role}-${e.org}`} delay={i * 0.04}>
                 <div
+                  className="stack-exp-row"
                   style={{
                     display: 'grid', gridTemplateColumns: '220px 1fr 1fr auto',
                     gap: 40, alignItems: 'baseline', padding: '26px 0',
@@ -171,7 +173,7 @@ const Stack = () => {
           </div>
         </div>
 
-        <div style={{ marginTop: 120, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80 }}>
+        <div className="stack-edu-grid" style={{ marginTop: 120, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80 }}>
           <div>
             <FadeIn><Eyebrow>{t('07 — Education', '07 — Formation')}</Eyebrow></FadeIn>
             <FadeIn delay={0.05}>

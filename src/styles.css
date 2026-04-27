@@ -176,3 +176,139 @@ section.section-pad { padding: var(--density-pad-section) 0; }
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* ---------------------------------------------------------------------------
+   MOBILE & TABLET — viewport-driven layout collapse.
+   The desktop design assumes two-column grids. Below ~900px the right column
+   gets too narrow to read, so we stack everything vertically. Below ~768px
+   we also hide decorative pieces (hero SVG diagram, hero marquee) and
+   collapse the nav into a hamburger drawer.
+   --------------------------------------------------------------------------- */
+
+/* Hamburger button — hidden on desktop, shown on mobile */
+.nav-hamburger { display: none; }
+
+@media (max-width: 768px) {
+  /* Tighter container on mobile */
+  .container { padding: 0 20px !important; }
+  section.section-pad { padding: 80px 0 !important; }
+
+  /* ---- Nav: hide the desktop links cluster, show hamburger ---- */
+  .nav-desktop  { display: none !important; }
+  .nav-name     { display: none !important; }
+  .nav-hamburger {
+    display: inline-flex !important; align-items: center; justify-content: center;
+    width: 40px; height: 40px; border-radius: 999px;
+    background: transparent; border: 1px solid var(--line-strong);
+    color: var(--ink); cursor: none;
+    font-family: var(--font-mono); font-size: 16px; line-height: 1;
+    padding: 0;
+  }
+
+  /* Mobile drawer that opens from the hamburger */
+  .nav-mobile-drawer {
+    position: fixed; top: 72px; left: 16px; right: 16px;
+    z-index: 49;
+    background: var(--bg-raised);
+    border: 1px solid var(--line-strong);
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: 0 18px 50px rgba(20, 17, 13, 0.16);
+    display: flex; flex-direction: column; gap: 2px;
+    animation: termIn 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .nav-mobile-drawer a {
+    padding: 14px 12px; border-radius: 10px;
+    text-decoration: none; color: var(--ink);
+    font-family: var(--font-mono); font-size: 13px; letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .nav-mobile-drawer a:active { background: var(--bg); }
+  .nav-mobile-lang {
+    display: flex; gap: 4px; align-items: center;
+    margin-top: 6px; padding: 10px 12px;
+    border-top: 1px solid var(--line);
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.14em;
+  }
+  .nav-mobile-lang button {
+    background: transparent; border: none; padding: 6px 8px;
+    font-family: inherit; font-size: inherit; letter-spacing: inherit;
+    cursor: none;
+  }
+
+  /* ---- Hero: stack columns, hide diagram + marquee ---- */
+  /* Convert the 320vh sticky-pin section into normal flow on mobile —
+     without the diagram, there's nothing to scrub against, and 320vh of
+     dead scroll just before the rest of the page is bad UX. */
+  section[data-screen-label="Hero"]            { height: auto !important; min-height: 100svh; }
+  section[data-screen-label="Hero"] > div      {
+    position: relative !important; height: auto !important;
+    padding: 100px 0 60px !important;
+  }
+  .hero-grid    { grid-template-columns: 1fr !important; gap: 24px !important; }
+  .hero-diagram { display: none !important; }
+  .hero-marquee { display: none !important; }
+  .hero-meta-strip {
+    flex-wrap: wrap !important;
+    gap: 18px 28px !important;
+    margin-top: 40px !important;
+  }
+
+  /* ---- About: stack the 1.3fr / 0.9fr grid ---- */
+  .about-grid {
+    grid-template-columns: 1fr !important;
+    gap: 48px !important;
+    margin-top: 28px !important;
+  }
+
+  /* ---- Work: header stacks, cards shrink ---- */
+  .work-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 18px !important;
+  }
+  [data-card="project"] {
+    width: min(86vw, 360px) !important;
+    height: 580px !important;
+  }
+  /* Card inner padding tighter on mobile */
+  [data-card="project"] > div > div {
+    padding: 24px !important;
+  }
+  /* Adjust large numbers + headlines inside the card */
+  [data-card="project"] .display { font-size: 38px !important; }
+
+  /* ---- Playground: stack toy + stats ---- */
+  .playground-intro {
+    grid-template-columns: 1fr !important;
+    gap: 18px !important;
+    align-items: start !important;
+  }
+  .playground-toy { grid-template-columns: 1fr !important; gap: 20px !important; }
+
+  /* ---- Stack: simplify all multi-col rows ---- */
+  .stack-row,
+  .stack-exp-row {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+  .stack-edu-grid {
+    grid-template-columns: 1fr !important;
+    gap: 56px !important;
+  }
+  /* Slightly smaller experience role text */
+  .stack-exp-row .display { font-size: 22px !important; }
+
+  /* ---- Contact: tighter padding, smaller giant headline ---- */
+  section#contact {
+    padding: 100px 0 60px !important;
+  }
+}
+
+/* Slightly looser breakpoint for tablet — keep two-column where it still fits
+   but loosen any overly tight clamps. */
+@media (max-width: 900px) and (min-width: 769px) {
+  .hero-grid       { grid-template-columns: 1fr 1fr !important; }
+  .hero-meta-strip { flex-wrap: wrap !important; gap: 18px 28px !important; }
+  .about-grid      { grid-template-columns: 1fr !important; gap: 48px !important; }
+}

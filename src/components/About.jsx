@@ -161,6 +161,7 @@ const About = () => {
         <FadeIn><Eyebrow>{t('02 — About', '02 — À propos')}</Eyebrow></FadeIn>
 
         <div
+          className="about-grid"
           style={{
             display: 'grid', gridTemplateColumns: '1.3fr 0.9fr',
             gap: 80, marginTop: 40, alignItems: 'start',
