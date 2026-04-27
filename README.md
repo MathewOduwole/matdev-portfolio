@@ -45,6 +45,3 @@ Or connect this repo to Vercel via the dashboard — `vercel.json` already decla
 6. **Contact** — large editorial CTA, email + LinkedIn + GitHub buttons
 7. **Terminal** — easter-egg shell at bottom-right (toggle with `~` key) — supports `whoami`, `ls projects`, `cat about.md`, `stack`, `contact`, `open <name>`, `sudo hire-me`, `clear`, `help`
 
-## Source design
-Ported from a Claude Design HTML/JSX prototype (`portfolio/portfolio2.html` — the "v2 light" edition).
-The Tweaks panel from the prototype was editor-only (parent-window postMessage protocol) and is intentionally not ported.
