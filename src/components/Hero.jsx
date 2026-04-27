@@ -192,10 +192,13 @@ const Hero = () => {
             </div>
 
             {lang === 'fr' ? (
+              // Tighter clamp for French: "à l'intelligence" is much wider than
+              // its English counterpart at the same size and was wrapping into
+              // multiple lines, pushing the headline above the viewport.
               <h1
                 className="display"
                 style={{
-                  fontSize: 'clamp(56px, 8.4vw, 132px)', lineHeight: 0.94,
+                  fontSize: 'clamp(44px, 6.4vw, 96px)', lineHeight: 0.96,
                   letterSpacing: '-0.025em', maxWidth: 880,
                 }}
               >
