@@ -1,170 +1,130 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Btn, Eyebrow } from '../shared.jsx';
+import React, { useState } from 'react';
+import { Metric, Reveal, SectionHead } from '../shared.jsx';
 import { useT } from '../lang/LanguageContext.jsx';
+import EnerexDiagram from './diagrams/EnerexDiagram.jsx';
+import GloreaDiagram from './diagrams/GloreaDiagram.jsx';
 
-// Card width is fixed at 560px. With 28px gap, one "page" of horizontal
-// scroll is exactly card+gap. Reused by the prev/next button handlers.
-const CARD_WIDTH = 560;
-const CARD_GAP = 28;
-
-// Single project card — flippable on click. Front shows headline + metrics,
-// back shows the full body + stack chips + visit link.
-const ProjectCard = ({ p }) => {
+// Featured case study — copy on one side, live architecture drawing on the
+// other. The diagram is the argument: this is what the work actually is.
+const CaseStudy = ({ p, flip = false }) => {
   const t = useT();
-  const [flipped, setFlipped] = useState(false);
   return (
-    <div
-      data-cursor="hover"
-      data-card="project"
-      onClick={() => setFlipped((f) => !f)}
-      style={{
-        flex: '0 0 auto', width: CARD_WIDTH, height: 640,
-        position: 'relative',
-        perspective: '1600px',
-        WebkitPerspective: '1600px',
-      }}
-    >
-      <div
-        style={{
-          position: 'absolute', inset: 0,
-          transformStyle: 'preserve-3d',
-          WebkitTransformStyle: 'preserve-3d',
-          transition: 'transform 0.8s cubic-bezier(0.22, 1, 0.36, 1)',
-          transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-          willChange: 'transform',
-        }}
-      >
-        {/* Front */}
-        <div
-          style={{
-            position: 'absolute', inset: 0,
-            backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden',
-            background: 'var(--bg-raised)',
-            border: '1px solid var(--line-strong)',
-            borderRadius: 14,
-            padding: 36, display: 'flex', flexDirection: 'column',
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div className="mono" style={{ fontSize: 64, color: p.tone, lineHeight: 1, fontWeight: 300 }}>{p.num}</div>
-            <div className="mono" style={{ fontSize: 10, color: 'var(--muted)', letterSpacing: '0.14em', textAlign: 'right', maxWidth: 220 }}>{p.tag}</div>
-          </div>
-
-          <h3 className="display" style={{ fontSize: 56, lineHeight: 0.98, marginTop: 32 }}>{p.title}</h3>
-          <div style={{ marginTop: 8, color: 'var(--ink-soft)', fontSize: 13, fontFamily: 'var(--font-mono)', letterSpacing: '0.04em' }}>{p.role}</div>
-
-          <p
-            style={{
-              marginTop: 28, color: 'var(--ink)',
-              fontFamily: 'var(--font-display)', fontStyle: 'italic',
-              fontSize: 22, lineHeight: 1.35,
-            }}
-          >“{p.oneLiner}”</p>
-
-          <div
-            style={{
-              marginTop: 'auto', paddingTop: 24,
-              borderTop: '1px dashed var(--line-strong)',
-              display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12,
-            }}
-          >
-            {p.metrics.map(([v, l]) => (
-              <div key={l}>
-                <div className="display" style={{ fontSize: 26, color: p.tone, lineHeight: 1 }}>{v}</div>
-                <div
-                  className="mono"
-                  style={{
-                    fontSize: 9, color: 'var(--muted)', letterSpacing: '0.12em',
-                    textTransform: 'uppercase', marginTop: 4,
-                  }}
-                >
-                  {l}
-                </div>
+    <Reveal amount={0.12}>
+      <article className={`case`}>
+        <div className={`case-grid${flip ? ' flip' : ''}`}>
+          {flip && (
+            <div className="case-diagram grid-paper">
+              <div className="case-fig">{p.fig}</div>
+              {p.diagram}
+              <div className="case-stamp">{p.stamp}</div>
+            </div>
+          )}
+          <div className="case-copy">
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 20, alignItems: 'baseline' }}>
+              <div className="mono" style={{ fontSize: 40, color: p.tone, lineHeight: 1, fontWeight: 300 }}>{p.num}</div>
+              <div className="mono" style={{ fontSize: 10, color: 'var(--muted)', letterSpacing: '0.14em', textAlign: 'right' }}>
+                {p.tag}
               </div>
-            ))}
-          </div>
+            </div>
 
-          <div
-            className="mono"
-            style={{
-              fontSize: 10, color: 'var(--muted)', letterSpacing: '0.16em',
-              marginTop: 20, textTransform: 'uppercase',
-            }}
-          >
-            {t('↻ Click to flip · details on back', '↻ Cliquez pour retourner · détails au verso')}
-          </div>
-        </div>
+            <h3 className="display" style={{ fontSize: 'clamp(38px, 4vw, 54px)', lineHeight: 0.98, marginTop: 22 }}>
+              {p.title}
+            </h3>
+            <div className="mono" style={{ marginTop: 8, color: 'var(--ink-soft)', fontSize: 12.5, letterSpacing: '0.04em' }}>
+              {p.role}
+            </div>
 
-        {/* Back */}
-        <div
-          style={{
-            position: 'absolute', inset: 0,
-            backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden',
-            background: 'var(--ink)', color: 'var(--bg)',
-            border: '1px solid var(--ink)',
-            borderRadius: 14,
-            padding: 36, display: 'flex', flexDirection: 'column',
-            transform: 'rotateY(180deg)',
-          }}
-          data-cursor-theme="dark"
-        >
-          <div className="mono" style={{ fontSize: 10, color: p.tone, letterSpacing: '0.14em' }}>
-            {p.num} / {t('DETAIL', 'DÉTAIL')}
-          </div>
-          <h3 className="display" style={{ fontSize: 36, marginTop: 16, lineHeight: 1 }}>{p.title}</h3>
-
-          <p style={{ marginTop: 24, fontSize: 15, lineHeight: 1.6, color: 'rgba(244,239,227,0.78)' }}>{p.body}</p>
-
-          <div style={{ marginTop: 28 }}>
-            <div
-              className="mono"
+            <p
               style={{
-                fontSize: 10, letterSpacing: '0.18em',
-                color: p.tone, textTransform: 'uppercase', marginBottom: 12,
+                marginTop: 22, color: 'var(--ink)',
+                fontFamily: 'var(--font-display)', fontStyle: 'italic',
+                fontSize: 21, lineHeight: 1.35,
               }}
             >
-              Stack
+              “{p.oneLiner}”
+            </p>
+
+            <p style={{ marginTop: 18, color: 'var(--ink-soft)', fontSize: 15, lineHeight: 1.65 }}>
+              {p.body}
+            </p>
+
+            <div className="chip-row" style={{ marginTop: 22 }}>
+              {p.stack.map((s) => <span className="chip" key={s}>{s}</span>)}
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {p.stack.map((s) => (
-                <span
-                  key={s}
-                  className="mono"
-                  style={{
-                    fontSize: 11, padding: '5px 10px', borderRadius: 999,
-                    border: '1px solid rgba(244,239,227,0.2)', color: 'var(--bg)',
-                  }}
-                >
-                  {s}
-                </span>
+
+            {p.link && (
+              <a
+                href={p.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-cursor="hover"
+                className="mono"
+                style={{
+                  marginTop: 20, display: 'inline-block',
+                  color: p.tone, textDecoration: 'none', fontSize: 12,
+                  letterSpacing: '0.12em',
+                }}
+              >
+                {t('VISIT', 'VISITER')} ↗ {p.linkLabel}
+              </a>
+            )}
+
+            <div className="case-metrics">
+              {p.metrics.map(([v, l]) => (
+                <Metric key={l} value={v} label={l} tone={p.tone} />
               ))}
             </div>
           </div>
-
-          {p.link && (
-            <a
-              href={p.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              data-cursor="hover"
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                marginTop: 'auto', paddingTop: 24,
-                color: p.tone, textDecoration: 'none', fontSize: 13,
-                fontFamily: 'var(--font-mono)', letterSpacing: '0.1em',
-              }}
-            >
-              {t('VISIT', 'VISITER')} → {p.linkLabel}
-            </a>
+          {!flip && (
+            <div className="case-diagram grid-paper">
+              <div className="case-fig">{p.fig}</div>
+              {p.diagram}
+              <div className="case-stamp">{p.stamp}</div>
+            </div>
           )}
-          <div
-            className="mono"
-            style={{
-              fontSize: 10, color: 'rgba(244,239,227,0.4)', letterSpacing: '0.16em',
-              marginTop: 16, textTransform: 'uppercase',
-            }}
-          >
-            {t('↻ Click to flip back', '↻ Cliquez pour retourner')}
+        </div>
+      </article>
+    </Reveal>
+  );
+};
+
+// Compact, expandable row for earlier roles.
+const RoleRow = ({ r }) => {
+  const [open, setOpen] = useState(false);
+  const t = useT();
+  return (
+    <div className={`role-row-wrap${open ? ' open' : ''}`}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        data-cursor="hover"
+        aria-expanded={open}
+        style={{
+          display: 'block', width: '100%', textAlign: 'left',
+          background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
+          color: 'inherit', font: 'inherit',
+        }}
+      >
+        <div className="role-row">
+          <div className="mono" style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            {r.date}
+          </div>
+          <div>
+            <span className="display" style={{ fontSize: 24 }}>{r.org}</span>
+            <span className="mono" style={{ fontSize: 11, color: r.tone, marginLeft: 14, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              {r.role}
+            </span>
+          </div>
+          <div className="mono" style={{ fontSize: 12, color: 'var(--muted)' }}>
+            {open ? '−' : '+'}
+          </div>
+        </div>
+      </button>
+      <div className="role-row-body">
+        <div style={{ padding: '2px 0 26px', maxWidth: 680 }}>
+          <p style={{ color: 'var(--ink-soft)', fontSize: 15, lineHeight: 1.65 }}>{r.body}</p>
+          <div className="chip-row" style={{ marginTop: 16 }}>
+            {r.stack.map((s) => <span className="chip" key={s}>{s}</span>)}
           </div>
         </div>
       </div>
@@ -172,258 +132,150 @@ const ProjectCard = ({ p }) => {
   );
 };
 
-// Round nav button used for prev/next horizontal scroll
-const NavBtn = ({ disabled, onClick, label, children }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    disabled={disabled}
-    data-cursor="hover"
-    aria-label={label}
-    style={{
-      width: 48, height: 48, borderRadius: 999,
-      border: '1px solid var(--line-strong)',
-      background: 'var(--bg-raised)',
-      color: 'var(--ink)',
-      cursor: disabled ? 'not-allowed' : 'none',
-      opacity: disabled ? 0.3 : 1,
-      transition: 'opacity 0.2s, border-color 0.2s, background 0.2s',
-      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-      fontFamily: 'var(--font-sans)', fontSize: 16, fontWeight: 500,
-    }}
-    onMouseEnter={(e) => {
-      if (disabled) return;
-      e.currentTarget.style.borderColor = 'var(--ember)';
-      e.currentTarget.style.color = 'var(--ember)';
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.borderColor = 'var(--line-strong)';
-      e.currentTarget.style.color = 'var(--ink)';
-    }}
-  >
-    {children}
-  </button>
-);
-
-// Selected work — horizontally scrollable card deck. Vertical page scroll
-// passes through normally (no scroll-jacking). Users can drag the strip,
-// trackpad-swipe, use the visible scrollbar, or click the prev/next buttons.
 const Work = () => {
   const t = useT();
-  const trackRef = useRef(null);
-  const [canPrev, setCanPrev] = useState(false);
-  const [canNext, setCanNext] = useState(true);
 
-  const PROJECTS = [
+  const enerex = {
+    num: '01',
+    title: 'Enerex',
+    tag: t('AI ENGINEER · 05/2026 — PRESENT', 'INGÉNIEUR IA · 05/2026 — PRÉSENT'),
+    role: t('LLM agents · RAG · Evals · MCP · Azure', 'Agents LLM · RAG · Évals · MCP · Azure'),
+    oneLiner: t(
+      "Agents that read the energy market's paperwork — so people don't have to.",
+      "Des agents qui lisent la paperasse du marché de l'énergie — pour que les humains n'aient plus à le faire."
+    ),
+    body: t(
+      'Enerex builds SaaS for the deregulated retail-energy market; I build its AI layer. An unattended multi-agent platform ingests supplier emails and contracts, extracts structured data with retrieval-augmented LLM agents, routes low-confidence fields to humans, and writes clean records back into the sales and commissions products. I re-architected the extraction pipeline from minutes to seconds, built a Model Context Protocol server exposing 80+ permission-gated tools to agents across nine products, and gate every change behind a field-level evaluation framework — plus a calibrated ML pricing model shaped by a causal-inference deep-dive.',
+      "Enerex édite des SaaS pour le marché dérégulé de l'énergie ; j'y construis la couche IA. Une plateforme multi-agents autonome ingère les e-mails et contrats des fournisseurs, en extrait des données structurées via des agents LLM augmentés par récupération (RAG), achemine les champs à faible confiance vers une relecture humaine, et réinjecte des données propres dans les produits de vente et de commissions. J'ai ré-architecturé le pipeline d'extraction pour passer de plusieurs minutes à quelques secondes, construit un serveur Model Context Protocol exposant 80+ outils à accès contrôlé sur neuf produits, et conditionné chaque mise en production à un cadre d'évaluation champ par champ — sans oublier un modèle ML de tarification calibré, éclairé par une analyse d'inférence causale."
+    ),
+    metrics: [
+      ['~10×',  t('faster extraction', 'extraction accélérée')],
+      ['80+',   t('MCP tools', 'outils MCP')],
+      ['9',     t('products served', 'produits couverts')],
+      ['24/7',  t('unattended', 'autonome')],
+    ],
+    stack: ['TypeScript', 'Python', 'OpenAI', 'MCP', 'Azure Functions', 'AI Search', 'Document Intelligence', 'Prisma', 'Next.js'],
+    link: 'https://enerex.com', linkLabel: 'enerex.com',
+    tone: 'var(--ember)',
+    fig: t('FIG. 01 — UNATTENDED AI PLATFORM', 'FIG. 01 — PLATEFORME IA AUTONOME'),
+    stamp: t('LIVE IN PROD', 'EN PRODUCTION'),
+    diagram: <EnerexDiagram />,
+  };
+
+  const glorea = {
+    num: '02',
+    title: 'Glorea',
+    tag: t('CO-FOUNDER · 04/2024 — PRESENT', 'CO-FONDATEUR · 04/2024 — PRÉSENT'),
+    role: t('Full-stack · Data pipelines · Hybrid cloud', 'Full-stack · Pipelines de données · Cloud hybride'),
+    oneLiner: t(
+      'The unified research workspace — research smarter, publish faster, collaborate globally.',
+      "L'espace de travail unifié de la recherche — chercher mieux, publier plus vite, collaborer sans frontières."
+    ),
+    body: t(
+      'Glorea unifies the scattered tools of modern research — discovery, writing, data, collaboration, citations — into one calm workspace for researchers, labs, and institutions. I co-founded it and built the platform from zero: React + Node, ingestion pipelines processing 20M+ research papers and 600,000+ job postings, and microservices for tracking, recommendations, and content delivery. Migrated the whole stack off Azure onto a hybrid Hetzner + Cloudflare + Vercel architecture, wired CI/CD across environments, and led the SEO and ads push behind the first 100+ active users.',
+      "Glorea unifie les outils éparpillés de la recherche moderne — découverte, rédaction, données, collaboration, citations — dans un espace de travail unique pour les chercheurs, les laboratoires et les institutions. Co-fondateur, j'ai construit la plateforme en partant de zéro : React + Node, des pipelines d'ingestion traitant 20M+ d'articles scientifiques et 600 000+ offres d'emploi, et des microservices pour le suivi, les recommandations et la diffusion de contenu. J'ai migré toute la stack d'Azure vers une architecture hybride Hetzner + Cloudflare + Vercel, mis en place le CI/CD sur tous les environnements, et piloté le SEO et les campagnes qui ont amené les 100 premiers utilisateurs actifs."
+    ),
+    metrics: [
+      ['20M+', t('papers processed', 'articles traités')],
+      ['600K+', t('job postings', "offres d'emploi")],
+      ['100+', t('first users', 'premiers utilisateurs')],
+      ['3',    t('clouds, one stack', 'clouds, une stack')],
+    ],
+    stack: ['React', 'Node', 'Python', 'PostgreSQL', 'Hetzner', 'Cloudflare', 'Vercel', 'GitHub Actions'],
+    link: 'https://gloreaa.com', linkLabel: 'gloreaa.com',
+    tone: 'var(--teal)',
+    fig: t('FIG. 02 — HYBRID CLOUD', 'FIG. 02 — CLOUD HYBRIDE'),
+    stamp: t('BUILT FROM ZERO', 'PARTI DE ZÉRO'),
+    diagram: <GloreaDiagram />,
+  };
+
+  const earlier = [
     {
-      id: 'glorea', num: '01', title: 'Glorea',
-      tag: t('FLAGSHIP · 04/2024 — PRESENT', 'PROJET PHARE · 04/2024 — PRÉSENT'),
-      role: t('Full-stack · Data engineering · AWS/Azure', 'Full-stack · Ingénierie de données · AWS/Azure'),
-      oneLiner: t(
-        'A research workspace where a million papers and 300K jobs live in one place.',
-        "Un espace de travail pour la recherche où un million d'articles et 300K offres vivent en un seul endroit."
-      ),
-      body: t(
-        'Built the full-stack research platform from zero — React + Node, pipelines ingesting and serving 1M+ research papers and 300,000+ job postings, migrated the stack from Azure to a hybrid Hetzner + Cloudflare + Vercel architecture, and led SEO & ads driving the first 100+ active users.',
-        "Construction de la plateforme full-stack de recherche depuis zéro — React + Node, pipelines ingérant et servant 1M+ d'articles scientifiques et 300 000+ offres d'emploi, migration de la stack d'Azure vers une architecture hybride Hetzner + Cloudflare + Vercel, et pilotage du SEO & des annonces ayant amené les 100 premiers utilisateurs actifs."
-      ),
-      metrics: [
-        ['1M+',  t('papers',         'articles')],
-        ['300K+', t('jobs',          'emplois')],
-        ['100+', t('first users',    'premiers utilisateurs')],
-        ['5',    t('cloud services', 'services cloud')],
-      ],
-      stack: ['React', 'Node', 'Python', 'Hetzner', 'Cloudflare', 'Azure', 'PostgreSQL'],
-      link: 'https://gloreaa.com', linkLabel: 'gloreaa.com',
-      tone: 'var(--ember)',
-    },
-    {
-      id: 'stealth', num: '02', title: 'Stealth Power',
-      tag: t('DATA SCIENTIST · 02–07/2025 · AUSTIN', 'DATA SCIENTIST · 02–07/2025 · AUSTIN'),
-      role: t('LLM fine-tuning · ML pipelines · AI agents', 'Fine-tuning LLM · Pipelines ML · Agents IA'),
-      oneLiner: t(
-        'Fine-tuned LLMs for NLP, built the data flow beneath them, shipped a one-prompt DB-querying agent.',
-        "Fine-tuning de LLMs pour le NLP, construction du flux de données sous-jacent, livraison d'un agent qui interroge la base de données en un seul prompt."
-      ),
-      body: t(
-        'Fine-tuned LLMs to improve NLP applications. Built and integrated APIs for real-time data flow. Cleaned and processed sensor data for modeling. Shipped an AI agent that turns single-prompt questions into clear, actionable insights, plus dashboards for non-technical stakeholders.',
-        "Fine-tuning de LLMs pour améliorer les applications NLP. Construction et intégration d'APIs pour un flux de données en temps réel. Nettoyage et traitement de données capteurs pour la modélisation. Livraison d'un agent IA qui transforme des questions en un seul prompt en analyses claires et actionnables, avec des tableaux de bord pour les parties prenantes non techniques."
-      ),
-      metrics: [
-        ['LLM',       t('fine-tuning', 'fine-tuning')],
-        ['Real-time', t('data flow',   'flux temps réel')],
-        ['1-prompt',  t('DB agent',    'agent BDD')],
-        ['AWS',       t('cloud infra', 'infra cloud')],
-      ],
-      stack: ['Python', 'LLMs', 'React', 'Node', 'SQL', 'AWS', 'pandas'],
-      link: null, linkLabel: null,
-      tone: 'var(--teal)',
-    },
-    {
-      id: 'nerds', num: '03', title: 'Nerds Support',
-      tag: t('DEVOPS · 06/2024 — 01/2025 · MIAMI', 'DEVOPS · 06/2024 — 01/2025 · MIAMI'),
-      role: t('CI/CD · Cloud · BI dashboards', 'CI/CD · Cloud · Tableaux de bord BI'),
-      oneLiner: t(
-        'Reliability engineer for an MSP — pipelines, dashboards, and the boring infrastructure that keeps it all up.',
-        "Ingénieur fiabilité pour un MSP — pipelines, tableaux de bord, et l'infrastructure invisible qui maintient tout en route."
-      ),
-      body: t(
-        'Owned CI/CD for internal tooling, instrumented monitoring, and built BI dashboards that cut weekly reporting from hours to minutes. The kind of work nobody notices when it works.',
-        "Pris en charge le CI/CD pour l'outillage interne, instrumentation du monitoring, et construction de tableaux de bord BI qui ont réduit le reporting hebdomadaire de plusieurs heures à quelques minutes. Le genre de travail que personne ne remarque quand il fonctionne."
-      ),
-      metrics: [
-        ['CI/CD',     t('pipelines',  'pipelines')],
-        ['BI',        t('dashboards', 'tableaux de bord')],
-        ['Cloud',     t('monitoring', 'monitoring')],
-        ['Hours→min', t('reporting',  'reporting')],
-      ],
-      stack: ['Docker', 'GitHub Actions', 'AWS', 'Azure', 'Tableau', 'Power BI'],
-      link: null, linkLabel: null,
+      org: 'Stealth Power',
+      role: t('Data Scientist', 'Data Scientist'),
+      date: '02 — 07/2025 · Austin',
       tone: 'var(--amber)',
+      body: t(
+        'Fine-tuned LLMs for NLP applications, built and integrated APIs for real-time data flow, and processed sensor, web, and user-generated data for modeling. Shipped an AI agent that turns a single prompt into database queries and a custom stakeholder dashboard — deployed on AWS.',
+        "Fine-tuning de LLMs pour des applications NLP, construction et intégration d'APIs pour des flux de données en temps réel, traitement de données capteurs, web et utilisateurs pour la modélisation. Livraison d'un agent IA qui transforme un seul prompt en requêtes SQL et en tableau de bord sur mesure — le tout déployé sur AWS."
+      ),
+      stack: ['Python', 'LLMs', 'React', 'Node', 'SQL', 'AWS'],
     },
     {
-      id: 'gem', num: '04', title: 'GeM Laboratories',
-      tag: t('WEB DEV INTERN · 05–08/2022 · NANTES', 'STAGE DÉV. WEB · 05–08/2022 · NANTES'),
-      role: t('Scientific Python · Research tooling', 'Python scientifique · Outils de recherche'),
-      oneLiner: t(
-        'Internal tools for materials-science researchers — Python pipelines, custom UIs, real users on the team.',
-        "Outils internes pour des chercheurs en science des matériaux — pipelines Python, interfaces sur mesure, vrais utilisateurs dans l'équipe."
-      ),
-      body: t(
-        'Wrote scientific Python utilities and small internal web tools used daily by a research team. First brush with research-to-production: code that someone runs on a Tuesday morning and depends on.',
-        "Écriture d'utilitaires Python scientifiques et de petits outils web internes utilisés quotidiennement par une équipe de recherche. Premier contact avec le passage de la recherche à la production : du code que quelqu'un lance un mardi matin et sur lequel il compte."
-      ),
-      metrics: [
-        ['Python',    t('tooling',   'outillage')],
-        ['Daily',     t('users',     'utilisateurs')],
-        ['Materials', t('science',   'science')],
-        ['Internal',  t('apps',      'apps')],
-      ],
-      stack: ['Python', 'NumPy', 'matplotlib', 'JS'],
-      link: null, linkLabel: null,
+      org: 'Nerds Support',
+      role: t('DevOps Engineer', 'Ingénieur DevOps'),
+      date: '06/2024 — 01/2025 · Miami',
       tone: 'var(--crimson)',
+      body: t(
+        'Owned CI/CD for internal tooling, led API-and-automation data collection projects, ran security audits and remediations, and automated Power BI operational reporting — cutting weekly reporting from hours to minutes. The kind of work nobody notices when it works.',
+        "Responsable du CI/CD pour l'outillage interne, pilotage de projets de collecte de données par API et automatisation, audits de sécurité et remédiations, et automatisation du reporting opérationnel Power BI — réduisant le reporting hebdomadaire de plusieurs heures à quelques minutes. Le genre de travail que personne ne remarque quand tout fonctionne."
+      ),
+      stack: ['Docker', 'GitHub Actions', 'AWS', 'Azure', 'Power BI', 'Selenium'],
+    },
+    {
+      org: 'École Centrale de Nantes',
+      role: t('Tutor', 'Tuteur'),
+      date: '03 — 05/2024 · Nantes',
+      tone: 'var(--ember)',
+      body: t(
+        'Tutored 28 students in Python, linear algebra, and analysis — workshops, custom lesson plans, and the discovery that explaining something is the fastest way to actually understand it.',
+        "Tutorat de 28 étudiants en Python, algèbre linéaire et analyse — ateliers, plans de cours sur mesure, et la découverte qu'expliquer une chose est le moyen le plus rapide de vraiment la comprendre."
+      ),
+      stack: ['Python', t('Linear algebra', 'Algèbre linéaire'), t('Teaching', 'Pédagogie')],
+    },
+    {
+      org: 'GeM Laboratories',
+      role: t('Web Developer (Intern)', 'Développeur Web (Stagiaire)'),
+      date: '05 — 08/2022 · Nantes',
+      tone: 'var(--teal)',
+      body: t(
+        'Wrote a Python wrapper (pybind11) for a high-performance C++ library solving partial differential equations, and integrated it into Jupyter so 7,000+ students and educators could actually use it. First taste of research-to-production.',
+        "Écriture d'un wrapper Python (pybind11) pour une bibliothèque C++ haute performance résolvant des équations aux dérivées partielles, intégrée à Jupyter pour la rendre utilisable par 7 000+ étudiants et enseignants. Premier contact avec le passage de la recherche à la production."
+      ),
+      stack: ['Python', 'C++', 'Pybind11', 'SQL', 'Jupyter'],
     },
   ];
-
-  const updateNavState = () => {
-    const tk = trackRef.current;
-    if (!tk) return;
-    setCanPrev(tk.scrollLeft > 4);
-    setCanNext(tk.scrollLeft + tk.clientWidth < tk.scrollWidth - 4);
-  };
-
-  useEffect(() => {
-    updateNavState();
-    const onResize = () => updateNavState();
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
-
-  const scrollByCard = (dir) => {
-    const tk = trackRef.current;
-    if (!tk) return;
-    tk.scrollBy({ left: dir * (CARD_WIDTH + CARD_GAP), behavior: 'smooth' });
-  };
 
   return (
     <section
       id="work"
-      data-screen-label="Work"
+      data-stage-label={t('03 · SERVE', '03 · DÉPLOIEMENT')}
       className="section-pad"
-      style={{ background: 'var(--bg-deep)', position: 'relative' }}
+      style={{ background: 'var(--bg)', position: 'relative' }}
     >
       <div className="container">
-        <Eyebrow>{t('03 — Selected work', '03 — Projets sélectionnés')}</Eyebrow>
-        <div
-          className="work-header"
-          style={{
-            marginTop: 16,
-            display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end',
-            gap: 40, flexWrap: 'wrap',
-          }}
-        >
-          <h2
-            className="display"
-            style={{ fontSize: 'clamp(48px, 6.5vw, 92px)', lineHeight: 0.96, maxWidth: 800 }}
-          >
-            {t('Four projects, ', 'Quatre projets,')}
-            <br />
-            {t('one through-line.', 'un fil conducteur.')}
-          </h2>
-          <div
-            className="mono"
-            style={{
-              fontSize: 10, letterSpacing: '0.18em',
-              color: 'var(--muted)', textTransform: 'uppercase', textAlign: 'right',
-            }}
-          >
-            {t('← Drag, scroll, or use buttons →', '← Glissez, défilez ou utilisez les boutons →')}
-            <br />
-            <span style={{ color: 'var(--ink)' }}>
-              {t('Click cards to flip', 'Cliquez pour retourner les cartes')}
-            </span>
-          </div>
-        </div>
-      </div>
+        <SectionHead
+          code={t('03 · SERVE', '03 · DÉPLOIEMENT')}
+          status={t('live', 'en ligne')}
+          title={t(
+            <>Systems in <em style={{ color: 'var(--ember)', fontStyle: 'italic' }}>production</em>, serving real users.</>,
+            <>Des systèmes en <em style={{ color: 'var(--ember)', fontStyle: 'italic' }}>production</em>, au service de vrais utilisateurs.</>
+          )}
+        />
 
-      {/* Horizontal-scroll card strip — full bleed */}
-      <div
-        ref={trackRef}
-        onScroll={updateNavState}
-        className="work-track"
-        style={{
-          marginTop: 56,
-          display: 'flex',
-          gap: CARD_GAP,
-          padding: '4px 56px 28px',
-          overflowX: 'auto',
-          overflowY: 'visible',
-          scrollSnapType: 'x mandatory',
-          scrollbarWidth: 'thin',
-          WebkitOverflowScrolling: 'touch',
-        }}
-      >
-        {PROJECTS.map((p) => (
-          <div key={p.id} style={{ scrollSnapAlign: 'start', flexShrink: 0 }}>
-            <ProjectCard p={p} />
-          </div>
-        ))}
-        {/* End cap — invitation card */}
-        <div style={{ scrollSnapAlign: 'start', flexShrink: 0 }}>
-          <div
-            style={{
-              width: 360, height: 640,
-              border: '1px dashed var(--line-strong)', borderRadius: 14,
-              display: 'flex', flexDirection: 'column',
-              justifyContent: 'center', alignItems: 'center',
-              padding: 36, textAlign: 'center',
-            }}
-          >
-            <div className="display" style={{ fontSize: 36, color: 'var(--ink)', maxWidth: 240 }}>
-              {t('More on the way.', 'D\'autres à venir.')}
-            </div>
-            <p style={{ marginTop: 14, color: 'var(--ink-soft)', fontSize: 14 }}>
-              {t(
-                'Currently building. Want a peek at unreleased work?',
-                "En cours de construction. Envie d'un aperçu de travaux non publiés ?"
-              )}
-            </p>
-            <div style={{ marginTop: 22 }}>
-              <Btn href="#contact" variant="ghost">{t('Reach out →', 'Me contacter →')}</Btn>
-            </div>
-          </div>
+        <div style={{ marginTop: 56, display: 'grid', gap: 44 }}>
+          <CaseStudy p={enerex} />
+          <CaseStudy p={glorea} flip />
         </div>
-      </div>
 
-      <div
-        className="container"
-        style={{
-          marginTop: 18,
-          display: 'flex', justifyContent: 'flex-end', gap: 10,
-        }}
-      >
-        <NavBtn onClick={() => scrollByCard(-1)} disabled={!canPrev} label={t('Previous project', 'Projet précédent')}>←</NavBtn>
-        <NavBtn onClick={() => scrollByCard(1)} disabled={!canNext} label={t('Next project', 'Projet suivant')}>→</NavBtn>
+        <div style={{ marginTop: 90 }}>
+          <Reveal>
+            <div className="eyebrow" style={{ marginBottom: 8 }}>
+              {t('Earlier missions', 'Missions précédentes')}
+            </div>
+          </Reveal>
+          <Reveal delay={0.05}>
+            <div className="mono" style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10 }}>
+              {t('Click a row to expand', 'Cliquez sur une ligne pour déplier')}
+            </div>
+          </Reveal>
+          <Reveal delay={0.1}>
+            <div>
+              {earlier.map((r) => <RoleRow key={r.org} r={r} />)}
+              <div style={{ borderTop: '1px solid var(--line)' }} />
+            </div>
+          </Reveal>
+        </div>
       </div>
     </section>
   );

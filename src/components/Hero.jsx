@@ -1,337 +1,299 @@
-import React, { useRef } from 'react';
-import { Btn, Magnetic, useSectionScroll } from '../shared.jsx';
+import React, { useEffect, useRef, useState } from 'react';
+import { Btn, Magnetic, prefersReducedMotion } from '../shared.jsx';
 import { useLang, useT } from '../lang/LanguageContext.jsx';
 
-// SVG dataflow diagram driven entirely by `progress` (0..1).
-// Four phases: ingest → train → deploy → impact. Phases ramp in/out
-// across overlapping windows so the scene is always doing something.
-const HeroDiagram = ({ progress }) => {
+// Quadratic bezier point
+const qbez = (p0, p1, p2, t) => {
+  const u = 1 - t;
+  return {
+    x: u * u * p0.x + 2 * u * t * p1.x + t * t * p2.x,
+    y: u * u * p0.y + 2 * u * t * p1.y + t * t * p2.y,
+  };
+};
+
+// Intake diagram — time-based (not scroll-scrubbed): three signal sources
+// stream packets into the model core, which feeds a single line straight
+// down and out of the panel toward stage 01. The page itself continues it.
+const HeroDiagram = () => {
   const t = useT();
-  const p = progress;
-  const ingest = Math.max(0, Math.min(1, (p - 0.0)  / 0.30));
-  const train  = Math.max(0, Math.min(1, (p - 0.20) / 0.35));
-  const deploy = Math.max(0, Math.min(1, (p - 0.50) / 0.30));
-  const impact = Math.max(0, Math.min(1, (p - 0.70) / 0.30));
-  const PATH_LEN = 320;
+  const wrapRef = useRef(null);
+  const [time, setTime] = useState(0.42);
 
+  useEffect(() => {
+    if (prefersReducedMotion()) return undefined;
+    let raf;
+    let running = false;
+    const start = performance.now();
+    const tick = (now) => {
+      setTime((now - start) / 1000);
+      raf = requestAnimationFrame(tick);
+    };
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting && !running) {
+        running = true;
+        raf = requestAnimationFrame(tick);
+      } else if (!e.isIntersecting && running) {
+        running = false;
+        cancelAnimationFrame(raf);
+      }
+    }, { threshold: 0.1 });
+    if (wrapRef.current) io.observe(wrapRef.current);
+    return () => { io.disconnect(); cancelAnimationFrame(raf); };
+  }, []);
+
+  const CORE = { x: 260, y: 250 };
   const sources = [
-    { x: 80,  y: 80, label: t('PAPERS', 'ARTICLES') },
-    { x: 300, y: 60, label: t('JOBS',   'EMPLOIS') },
-    { x: 520, y: 80, label: t('LOGS',   'LOGS') },
+    { x: 95,  label: t('RAW DATA', 'DONNÉES BRUTES') },
+    { x: 260, label: t('KNOWLEDGE', 'CONNAISSANCES') },
+    { x: 425, label: t('FEEDBACK', 'RETOURS') },
   ];
-
-  const metrics = [
-    { x: 90,  y: 640, v: '28',    l: t('STUDENTS', 'ÉTUDIANTS') },
-    { x: 300, y: 640, v: '300K+', l: t('JOBS',     'EMPLOIS') },
-    { x: 510, y: 640, v: '100+',  l: t('USERS',    'UTILISATEURS') },
-  ];
-
-  const phases = [
-    { at: 0.10, label: t('01 · INGEST', '01 · COLLECTE') },
-    { at: 0.35, label: t('02 · MODEL',  '02 · MODÈLE') },
-    { at: 0.65, label: t('03 · DEPLOY', '03 · DÉPLOIEMENT') },
-    { at: 0.90, label: t('04 · IMPACT', '04 · IMPACT') },
-  ];
+  const paths = sources.map((s) => ({
+    p0: { x: s.x, y: 72 },
+    p1: { x: (s.x + CORE.x) / 2, y: 150 },
+    p2: { x: CORE.x, y: CORE.y - 58 },
+  }));
 
   return (
-    <svg viewBox="0 0 600 700" width="100%" height="100%" style={{ overflow: 'visible' }} aria-hidden="true">
-      <defs>
-        <radialGradient id="halo" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="var(--ember)" stopOpacity="0.4" />
-          <stop offset="100%" stopColor="var(--ember)" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-
-      <circle cx="300" cy="350" r={80 + train * 60} fill="url(#halo)" opacity={train * 0.9} />
-
-      {sources.map((s, i) => {
-        const o = Math.max(0, Math.min(1, ingest - i * 0.12));
-        return (
-          <g key={s.label} opacity={o} transform={`translate(0, ${(1 - o) * -12})`}>
-            <text x={s.x} y={s.y} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="10" letterSpacing="2" fill="var(--muted)">
+    <div ref={wrapRef} style={{ position: 'relative', height: '100%' }}>
+      <svg viewBox="0 0 520 600" width="100%" height="100%" style={{ overflow: 'visible' }} aria-hidden="true">
+        {/* Source labels */}
+        {sources.map((s) => (
+          <g key={s.label}>
+            <text x={s.x} y={52} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="10" letterSpacing="2" fill="var(--muted)">
               {s.label}
             </text>
-            <line x1={s.x - 18} y1={s.y + 8} x2={s.x + 18} y2={s.y + 8} stroke="var(--line-strong)" strokeWidth="1" />
+            <line x1={s.x - 20} y1={60} x2={s.x + 20} y2={60} stroke="var(--line-strong)" strokeWidth="1" />
           </g>
-        );
-      })}
+        ))}
 
-      {Array.from({ length: 24 }).map((_, i) => {
-        const col = i % 3;
-        const sx = [80, 300, 520][col];
-        const phaseOffset = i / 24;
-        const tt = (p * 2 + phaseOffset) % 1;
-        const ex = 300;
-        const ey = 340;
-        const x = sx + (ex - sx) * tt;
-        const y = 90 + (ey - 90) * tt;
-        const op = Math.sin(tt * Math.PI) * (1 - deploy * 0.7) * (ingest > 0.05 ? 1 : 0);
-        return <circle key={`drop-${i}`} cx={x} cy={y} r="1.5" fill="var(--ember)" opacity={op} />;
-      })}
-
-      <g opacity={train}>
-        <g transform={`translate(300 350) rotate(${p * 360})`}>
-          {Array.from({ length: 12 }).map((_, i) => {
-            const a = (i / 12) * Math.PI * 2;
-            const r = 60;
-            const x2 = Math.cos(a) * r;
-            const y2 = Math.sin(a) * r;
-            return <line key={`spoke-${i}`} x1={0} y1={0} x2={x2} y2={y2} stroke="var(--ink)" strokeWidth="0.8" opacity="0.6" />;
-          })}
-          <circle
-            cx="0" cy="0" r={60 - train * 5} fill="none"
-            stroke="var(--ember)" strokeWidth="1.4"
-            strokeDasharray={`${PATH_LEN} ${PATH_LEN}`}
-            strokeDashoffset={(1 - train) * PATH_LEN}
-            transform="rotate(-90)"
+        {/* Ingest curves */}
+        {paths.map((p, i) => (
+          <path
+            key={`path-${i}`}
+            d={`M ${p.p0.x} ${p.p0.y} Q ${p.p1.x} ${p.p1.y} ${p.p2.x} ${p.p2.y}`}
+            fill="none" stroke="var(--line-strong)" strokeWidth="1" strokeDasharray="3 4"
           />
-          <circle cx="0" cy="0" r={36 + Math.sin(p * 12) * 2} fill="var(--ember)" opacity={train * 0.92} />
-          <circle cx="0" cy="0" r={20} fill="var(--bg-raised)" opacity={train} />
-          <text x="0" y="4" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="9" letterSpacing="2" fill="var(--ember)" opacity={train}>
+        ))}
+
+        {/* Packets along ingest curves */}
+        {paths.map((p, i) =>
+          Array.from({ length: 5 }).map((_, k) => {
+            const prog = ((time * (0.16 + i * 0.025)) + k / 5 + i * 0.13) % 1;
+            const pt = qbez(p.p0, p.p1, p.p2, prog);
+            const op = Math.sin(prog * Math.PI) * 0.95;
+            return <circle key={`pk-${i}-${k}`} cx={pt.x} cy={pt.y} r="2.4" fill="var(--ember)" opacity={op} />;
+          })
+        )}
+
+        {/* Model core — rotating spokes, breathing center */}
+        <g transform={`translate(${CORE.x} ${CORE.y})`}>
+          <circle r="72" fill="var(--ember-glow)" opacity={0.5 + Math.sin(time * 1.4) * 0.25} />
+          <g transform={`rotate(${(time * 18) % 360})`}>
+            {Array.from({ length: 12 }).map((_, i) => {
+              const a = (i / 12) * Math.PI * 2;
+              return (
+                <line
+                  key={`spoke-${i}`}
+                  x1={0} y1={0}
+                  x2={Math.cos(a) * 52} y2={Math.sin(a) * 52}
+                  stroke="var(--ink)" strokeWidth="0.8" opacity="0.55"
+                />
+              );
+            })}
+          </g>
+          <circle r="52" fill="none" stroke="var(--ember)" strokeWidth="1.3" />
+          <circle r={36 + Math.sin(time * 2.2) * 2.5} fill="var(--ember)" opacity="0.92" />
+          <circle r="27" fill="var(--bg-raised)" />
+          <text y="3.5" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="8.5" letterSpacing="1.2" fill="var(--ember)">
             {t('MODEL', 'MODÈLE')}
           </text>
         </g>
-      </g>
 
-      <g opacity={deploy} transform="translate(300 350)">
-        {[110, 150, 195].map((r, i) => (
-          <ellipse
-            key={`ring-${i}`}
-            cx="0" cy="0" rx={r} ry={r * 0.34}
-            fill="none" stroke="var(--ember)"
-            strokeWidth="0.8" opacity={0.4 - i * 0.08}
-            transform={`rotate(${i * 18 + p * 30})`}
-          />
-        ))}
-        {[0, 1, 2].map((i) => {
-          const r = [110, 150, 195][i];
-          const a = (p * (1 + i * 0.4) + i * 1.2) * Math.PI;
-          const x = Math.cos(a) * r;
-          const y = Math.sin(a) * r * 0.34;
-          return <circle key={`sat-${i}`} cx={x} cy={y} r="3.2" fill="var(--ember)" opacity={deploy} />;
+        {/* Output line — straight down, off the panel, toward stage 01 */}
+        <line x1={CORE.x} y1={CORE.y + 58} x2={CORE.x} y2={568} stroke="var(--line-strong)" strokeWidth="1.2" />
+        {Array.from({ length: 4 }).map((_, k) => {
+          const prog = ((time * 0.22) + k / 4) % 1;
+          const y = (CORE.y + 58) + prog * (568 - CORE.y - 58);
+          return <circle key={`out-${k}`} cx={CORE.x} cy={y} r="2.6" fill="var(--ember)" opacity={Math.sin(prog * Math.PI)} />;
         })}
-      </g>
+        <path d={`M ${CORE.x - 5} 560 L ${CORE.x} 570 L ${CORE.x + 5} 560`} fill="none" stroke="var(--ember)" strokeWidth="1.2" />
+        <text x={CORE.x + 14} y={556} fontFamily="var(--font-mono)" fontSize="9" letterSpacing="2" fill="var(--muted)">
+          {t('SHIPPED INTELLIGENCE ↓', 'INTELLIGENCE LIVRÉE ↓')}
+        </text>
 
-      <g opacity={impact} transform="translate(300 350)">
-        {Array.from({ length: 8 }).map((_, i) => {
-          const a = (i / 8) * Math.PI * 2;
-          const r1 = 220;
-          const r2 = 260 + impact * 30;
-          const x1 = Math.cos(a) * r1;
-          const y1 = Math.sin(a) * r1;
-          const x2 = Math.cos(a) * r2;
-          const y2 = Math.sin(a) * r2;
-          return <line key={`ray-${i}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke="var(--ember)" strokeWidth="1" opacity="0.5" />;
-        })}
-      </g>
-
-      {metrics.map((m, i) => {
-        const o = Math.max(0, Math.min(1, impact - i * 0.08));
-        return (
-          <g key={m.l} opacity={o} transform={`translate(0, ${(1 - o) * 12})`}>
-            <text x={m.x} y={m.y} textAnchor="middle" fontFamily="var(--font-display)" fontSize="38" fill="var(--ink)">{m.v}</text>
-            <text x={m.x} y={m.y + 18} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="9" letterSpacing="2" fill="var(--muted)">{m.l}</text>
-          </g>
-        );
-      })}
-
-      <g>
-        {phases.map((ph) => {
-          const dist = Math.abs(p - ph.at);
-          const o = Math.max(0, 1 - dist * 6);
-          return (
-            <text
-              key={ph.label}
-              x={300} y={490} textAnchor="middle"
-              fontFamily="var(--font-mono)" fontSize="10" letterSpacing="3"
-              fill="var(--ember)" opacity={o}
-            >
-              {ph.label}
-            </text>
-          );
-        })}
-      </g>
-    </svg>
+        {/* Drafting annotations */}
+        <text x="6" y="596" fontFamily="var(--font-mono)" fontSize="9" letterSpacing="2.5" fill="var(--muted)">
+          {t('FIG. 00 — WHAT GOES INTO A MODEL', "FIG. 00 — CE QUI ENTRE DANS UN MODÈLE")}
+        </text>
+        <g stroke="var(--line-strong)" strokeWidth="1">
+          <line x1="505" y1="72" x2="505" y2="250" />
+          <line x1="500" y1="72" x2="510" y2="72" />
+          <line x1="500" y1="250" x2="510" y2="250" />
+        </g>
+        <text x="516" y="165" fontFamily="var(--font-mono)" fontSize="8" letterSpacing="1.5" fill="var(--muted)" transform="rotate(90 516 165)">
+          {t('INPUTS → INTELLIGENCE', 'ENTRÉES → INTELLIGENCE')}
+        </text>
+      </svg>
+    </div>
   );
 };
 
 const MARQUEE_ITEMS = [
-  'Python', 'PyTorch', 'scikit-learn', 'Hugging Face', 'pandas',
-  'SQL', 'FastAPI', 'Docker', 'GitHub Actions', 'AWS', 'GCP',
-  'React', 'Node', 'LangChain', 'Tableau',
+  'Python', 'TypeScript', 'PyTorch', 'OpenAI', 'Anthropic MCP', 'LangChain',
+  'Hugging Face', 'FastAPI', 'Node', 'React', 'Next.js', 'PostgreSQL',
+  'Docker', 'Kubernetes', 'GitHub Actions', 'Azure', 'AWS', 'GCP', 'Cloudflare',
 ];
 
 const Hero = () => {
   const t = useT();
   const { lang } = useLang();
-  const sectionRef = useRef(null);
-  const progress = useSectionScroll(sectionRef);
 
   return (
-    <section ref={sectionRef} data-screen-label="Hero" style={{ position: 'relative', height: '320vh' }}>
+    <section
+      data-stage-label={t('00 · INIT', '00 · INIT')}
+      style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', paddingTop: 90, paddingBottom: 90 }}
+    >
       <div
+        className="container hero-grid"
         style={{
-          position: 'sticky', top: 0,
-          height: '100vh', width: '100%',
-          overflow: 'hidden',
-          display: 'flex', alignItems: 'center',
+          width: '100%', display: 'grid',
+          gridTemplateColumns: '1.05fr 0.95fr',
+          gap: 40, alignItems: 'center',
         }}
       >
-        <div
-          className="container hero-grid"
-          style={{
-            width: '100%', display: 'grid',
-            gridTemplateColumns: '1.05fr 0.95fr',
-            gap: 40, alignItems: 'center',
-          }}
-        >
-          {/* Left — editorial typography */}
-          <div>
-            <div className="eyebrow" style={{ marginBottom: 18, color: 'var(--ember)' }}>
-              {t('Data Scientist · ML Engineer · Developer', 'Data Scientist · Ingénieur ML · Développeur')}
-            </div>
-
-            {lang === 'fr' ? (
-              // Tighter clamp for French: "à l'intelligence" is much wider than
-              // its English counterpart at the same size and was wrapping into
-              // multiple lines, pushing the headline above the viewport.
-              <h1
-                className="display"
-                style={{
-                  fontSize: 'clamp(44px, 6.4vw, 96px)', lineHeight: 0.96,
-                  letterSpacing: '-0.025em', maxWidth: 880,
-                }}
-              >
-                Du <em style={{ fontStyle: 'italic', color: 'var(--ember)' }}>signal brut</em>
-                <br />
-                à l'intelligence
-                <br />
-                en production.
-              </h1>
-            ) : (
-              <h1
-                className="display"
-                style={{
-                  fontSize: 'clamp(56px, 8.4vw, 132px)', lineHeight: 0.94,
-                  letterSpacing: '-0.025em', maxWidth: 880,
-                }}
-              >
-                Turning <em style={{ fontStyle: 'italic', color: 'var(--ember)' }}>raw signal</em>
-                <br />
-                into shipped
-                <br />
-                intelligence.
-              </h1>
-            )}
-
-            <div
-              style={{
-                marginTop: 36, color: 'var(--ink-soft)', fontSize: 18, lineHeight: 1.6,
-                maxWidth: 480, fontFamily: 'var(--font-sans)',
-              }}
-            >
-              {lang === 'fr' ? (
-                <>
-                  Data scientist menant des modèles du notebook à la production —
-                  à travers <span style={{ color: 'var(--ink)' }}>trois continents</span>,{' '}
-                  <span style={{ color: 'var(--ink)' }}>trois stacks</span>,{' '}
-                  <span style={{ color: 'var(--ink)' }}>trois langues</span>.
-                </>
-              ) : (
-                <>
-                  A data scientist taking models from notebook to production —
-                  across <span style={{ color: 'var(--ink)' }}>three continents</span>,{' '}
-                  <span style={{ color: 'var(--ink)' }}>three stacks</span>,{' '}
-                  <span style={{ color: 'var(--ink)' }}>three languages</span>.
-                </>
-              )}
-            </div>
-
-            <div style={{ marginTop: 40, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <Magnetic strength={0.25}>
-                <Btn href="#work" variant="primary">{t('See selected work →', 'Voir mes projets →')}</Btn>
-              </Magnetic>
-              <Magnetic strength={0.18}>
-                <Btn href="#contact" variant="ghost">{t("Let's talk", 'Parlons-en')}</Btn>
-              </Magnetic>
-            </div>
-
-            <div
-              className="hero-meta-strip"
-              style={{
-                marginTop: 64, display: 'flex', gap: 36,
-                fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.18em',
-                color: 'var(--muted)', textTransform: 'uppercase',
-              }}
-            >
-              <div>
-                <div style={{ color: 'var(--ember)' }}>{t('● AVAILABLE', '● DISPONIBLE')}</div>
-                <div style={{ marginTop: 4 }}>{t('For roles · contracts', 'Postes · missions')}</div>
-              </div>
-              <div>
-                <div>{t('Based in', 'Basé à')}</div>
-                <div style={{ color: 'var(--ink)', marginTop: 4 }}>Nantes · FR</div>
-              </div>
-              <div>
-                <div>{t('Worked across', 'A travaillé à')}</div>
-                <div style={{ color: 'var(--ink)', marginTop: 4 }}>Austin · Miami · Paris</div>
-              </div>
-            </div>
+        {/* Left — editorial typography */}
+        <div>
+          <div className="eyebrow" style={{ marginBottom: 18 }}>
+            {t('AI Engineer · Data Scientist · Builder', 'Ingénieur IA · Data Scientist · Créateur')}
           </div>
 
-          {/* Right — animated diagram (decorative; hidden on mobile) */}
-          <div className="hero-diagram" style={{ position: 'relative', height: 700, maxHeight: '85vh' }}>
-            <HeroDiagram progress={progress} />
-            <div
-              aria-hidden="true"
+          {lang === 'fr' ? (
+            <h1
+              className="display"
               style={{
-                position: 'absolute', right: -8, top: 0, bottom: 0,
-                width: 1, background: 'var(--line)',
+                fontSize: 'clamp(44px, 6.2vw, 94px)', lineHeight: 0.96,
+                letterSpacing: '-0.025em', maxWidth: 880,
               }}
             >
-              <div
-                style={{
-                  position: 'absolute', left: -3, top: `${progress * 100}%`,
-                  width: 7, height: 7, borderRadius: '50%',
-                  background: 'var(--ember)', transform: 'translateY(-50%)',
-                  boxShadow: '0 0 0 4px var(--ember-glow)',
-                  transition: 'top 0.05s linear',
-                }}
-              />
+              Du <em style={{ fontStyle: 'italic', color: 'var(--ember)' }}>signal brut</em>
+              <br />
+              à l'intelligence
+              <br />
+              en production.
+            </h1>
+          ) : (
+            <h1
+              className="display"
+              style={{
+                fontSize: 'clamp(54px, 8vw, 126px)', lineHeight: 0.94,
+                letterSpacing: '-0.025em', maxWidth: 880,
+              }}
+            >
+              Turning <em style={{ fontStyle: 'italic', color: 'var(--ember)' }}>raw signal</em>
+              <br />
+              into shipped
+              <br />
+              intelligence.
+            </h1>
+          )}
+
+          <div
+            style={{
+              marginTop: 34, color: 'var(--ink-soft)', fontSize: 18, lineHeight: 1.6,
+              maxWidth: 520, fontFamily: 'var(--font-sans)',
+            }}
+          >
+            {lang === 'fr' ? (
+              <>
+                Ingénieur IA chez <span style={{ color: 'var(--ink)' }}>Enerex</span>, co-fondateur
+                de <span style={{ color: 'var(--ink)' }}>Glorea</span>, créateur
+                de <span style={{ color: 'var(--ink)' }}>LaRecette.ai</span> — je fais passer les systèmes LLM
+                du prompt à la production, sur{' '}
+                <span style={{ color: 'var(--ink)' }}>trois continents</span>,{' '}
+                <span style={{ color: 'var(--ink)' }}>trois stacks</span>,{' '}
+                <span style={{ color: 'var(--ink)' }}>trois langues</span>.
+              </>
+            ) : (
+              <>
+                AI engineer at <span style={{ color: 'var(--ink)' }}>Enerex</span>, co-founder
+                of <span style={{ color: 'var(--ink)' }}>Glorea</span>, chef behind{' '}
+                <span style={{ color: 'var(--ink)' }}>LaRecette.ai</span> — I take LLM systems
+                from prompt to production, across{' '}
+                <span style={{ color: 'var(--ink)' }}>three continents</span>,{' '}
+                <span style={{ color: 'var(--ink)' }}>three stacks</span>,{' '}
+                <span style={{ color: 'var(--ink)' }}>three languages</span>.
+              </>
+            )}
+          </div>
+
+          <div style={{ marginTop: 40, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <Magnetic strength={0.25}>
+              <Btn href="#work" variant="primary">{t('See the work →', 'Voir les projets →')}</Btn>
+            </Magnetic>
+            <Magnetic strength={0.18}>
+              <Btn href="#contact" variant="ghost">{t("Let's talk", 'Parlons-en')}</Btn>
+            </Magnetic>
+          </div>
+
+          <div
+            className="hero-meta-strip"
+            style={{
+              marginTop: 60, display: 'flex', gap: 36,
+              fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.18em',
+              color: 'var(--muted)', textTransform: 'uppercase',
+            }}
+          >
+            <div>
+              <div style={{ color: 'var(--ember)' }}>{t('● Shipping at', '● En prod chez')}</div>
+              <div style={{ color: 'var(--ink)', marginTop: 4 }}>Enerex · {t('since 05/2026', 'depuis 05/2026')}</div>
+            </div>
+            <div>
+              <div>{t('Based in', 'Basé à')}</div>
+              <div style={{ color: 'var(--ink)', marginTop: 4 }}>Nantes · FR</div>
+            </div>
+            <div>
+              <div>{t('Now building', 'Projet en cours')}</div>
+              <div style={{ color: 'var(--ink)', marginTop: 4 }}>Glorea</div>
             </div>
           </div>
         </div>
 
-        {/* Bottom marquee — running stack list (tech names, not translated; hidden on mobile) */}
-        <div
-          className="hero-marquee"
-          style={{
-            position: 'absolute', bottom: 0, left: 0, right: 0,
-            padding: '16px 0',
-            borderTop: '1px solid var(--line)',
-            background: 'var(--bg-deep)',
-            overflow: 'hidden',
-          }}
-        >
-          <div className="marquee">
-            {Array.from({ length: 2 }).map((_, k) => (
-              <div key={`marquee-${k}`} style={{ display: 'flex', gap: 56, paddingLeft: 56 }}>
-                {MARQUEE_ITEMS.map((s) => (
-                  <span
-                    key={s}
-                    style={{
-                      fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.16em',
-                      color: 'var(--ink-soft)', textTransform: 'uppercase',
-                      display: 'inline-flex', alignItems: 'center', gap: 12,
-                    }}
-                  >
-                    {s}
-                    <span style={{ color: 'var(--ember)', opacity: 0.6 }}>✦</span>
-                  </span>
-                ))}
-              </div>
-            ))}
-          </div>
+        {/* Right — animated intake diagram (hidden ≤1024px) */}
+        <div className="hero-diagram" style={{ position: 'relative', height: 620, maxHeight: '82vh' }}>
+          <HeroDiagram />
+        </div>
+      </div>
+
+      {/* Bottom marquee — running stack list */}
+      <div
+        className="hero-marquee"
+        style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0,
+          padding: '15px 0',
+          borderTop: '1px solid var(--line)',
+          background: 'var(--bg-deep)',
+          overflow: 'hidden',
+        }}
+      >
+        <div className="marquee">
+          {Array.from({ length: 2 }).map((_, k) => (
+            <div key={`marquee-${k}`} style={{ display: 'flex', gap: 56, paddingLeft: 56 }}>
+              {MARQUEE_ITEMS.map((s) => (
+                <span
+                  key={s}
+                  style={{
+                    fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.16em',
+                    color: 'var(--ink-soft)', textTransform: 'uppercase',
+                    display: 'inline-flex', alignItems: 'center', gap: 12,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {s}
+                  <span style={{ color: 'var(--ember)', opacity: 0.6 }}>✦</span>
+                </span>
+              ))}
+            </div>
+          ))}
         </div>
       </div>
     </section>

@@ -1,24 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { useLang, useT } from '../lang/LanguageContext.jsx';
+import { scrollToHash } from '../lib/lenis.js';
+import { cvFor } from '../lib/cv.js';
 
 const useLinks = (t) => [
-  { href: '#about',      label: t('About',      'À propos') },
-  { href: '#work',       label: t('Work',       'Projets') },
-  { href: '#playground', label: t('Playground', 'Playground') },
-  { href: '#stack',      label: t('Stack',      'Stack') },
-  { href: '#contact',    label: t('Contact',    'Contact') },
+  { href: '#story',   label: t('Story',   'Parcours') },
+  { href: '#stack',   label: t('Stack',   'Stack') },
+  { href: '#work',    label: t('Work',    'Projets') },
+  { href: '#lab',     label: t('Lab',     'Labo') },
+  { href: '#arcade',  label: t('Arcade',  'Arcade') },
+  { href: '#contact', label: t('Contact', 'Contact') },
 ];
 
-// Top bar — transparent until 40px scrolled, then frosted-glass bar with a
-// subtle bottom border. All links are in-page anchors; the avatar mark routes
-// back to top. EN/FR pill on the far right toggles the site language.
-//
-// Mobile: links + lang toggle collapse into a hamburger drawer.
+// Top bar — transparent until 40px scrolled, then frosted-glass bar.
+// Anchors route through Lenis for smooth travel down the pipeline.
 const Nav = () => {
   const t = useT();
   const { lang, setLang } = useLang();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [cvOpen, setCvOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -27,8 +28,6 @@ const Nav = () => {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Close drawer if the viewport crosses back to desktop, so the menu state
-  // doesn't get stuck open if the user resizes / rotates.
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 769px)');
     const onChange = (e) => { if (e.matches) setMenuOpen(false); };
@@ -37,28 +36,33 @@ const Nav = () => {
   }, []);
 
   const links = useLinks(t);
+  const cvs = Object.values(cvFor(lang));
+
+  const go = (e, href) => {
+    e.preventDefault();
+    scrollToHash(href);
+  };
+
+  const closeAndGo = (e, href) => {
+    e.preventDefault();
+    setMenuOpen(false);
+    setTimeout(() => scrollToHash(href), 0);
+  };
 
   const langBtnStyle = (active) => ({
     background: 'transparent', border: 'none', padding: '4px 6px',
     fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.14em',
     color: active ? 'var(--ink)' : 'var(--muted)',
-    cursor: 'none',
+    cursor: 'pointer',
     transition: 'color 0.2s',
   });
-
-  const closeAndGo = (href) => {
-    setMenuOpen(false);
-    // Let the drawer unmount before the hash jump so the smooth-scroll target
-    // measurement isn't off by the drawer's height.
-    setTimeout(() => { window.location.hash = href; }, 0);
-  };
 
   return (
     <>
       <nav
         style={{
           position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
-          padding: '18px 24px',
+          padding: '16px 24px',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           background: scrolled || menuOpen ? 'rgba(244,239,227,0.92)' : 'transparent',
           backdropFilter: scrolled || menuOpen ? 'blur(14px)' : 'none',
@@ -69,12 +73,11 @@ const Nav = () => {
       >
         <a
           href="#top"
-          data-cursor="hover"
           style={{
             display: 'flex', alignItems: 'center', gap: 12,
             textDecoration: 'none', color: 'var(--ink)',
           }}
-          onClick={() => setMenuOpen(false)}
+          onClick={(e) => { setMenuOpen(false); go(e, '#top'); }}
         >
           <span
             style={{
@@ -99,15 +102,15 @@ const Nav = () => {
           </span>
         </a>
 
-        {/* Desktop links + lang toggle — hidden via CSS at ≤768px */}
-        <div className="nav-desktop" style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
+        {/* Desktop links + CV + lang toggle — hidden via CSS at ≤768px */}
+        <div className="nav-desktop" style={{ display: 'flex', alignItems: 'center', gap: 26 }}>
           {links.map((l) => (
             <a
               key={l.href}
               href={l.href}
-              data-cursor="hover"
+              onClick={(e) => go(e, l.href)}
               style={{
-                fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.14em',
+                fontFamily: 'var(--font-mono)', fontSize: 11.5, letterSpacing: '0.13em',
                 color: 'var(--ink-soft)', textDecoration: 'none', textTransform: 'uppercase',
                 transition: 'color 0.3s ease',
               }}
@@ -118,10 +121,77 @@ const Nav = () => {
             </a>
           ))}
 
+          {/* CV download — small dropdown with both versions */}
+          <div
+            style={{ position: 'relative' }}
+            onMouseLeave={() => setCvOpen(false)}
+          >
+            <button
+              type="button"
+              onClick={() => setCvOpen(true)}
+              aria-expanded={cvOpen}
+              aria-haspopup="true"
+              style={{
+                fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.13em',
+                textTransform: 'uppercase', cursor: 'pointer',
+                background: 'transparent', color: 'var(--ember)',
+                border: '1px solid var(--ember)', borderRadius: 999,
+                padding: '7px 14px',
+                transition: 'background 0.2s, color 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'var(--ember)';
+                e.currentTarget.style.color = 'var(--bg-raised)';
+                setCvOpen(true);
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = 'var(--ember)';
+              }}
+            >
+              CV ⤓
+            </button>
+            {cvOpen && (
+              <div
+                style={{
+                  position: 'absolute', top: 'calc(100% + 8px)', right: 0,
+                  background: 'var(--bg-raised)', border: '1px solid var(--line-strong)',
+                  borderRadius: 12, padding: 8, minWidth: 240,
+                  boxShadow: '0 18px 50px rgba(20, 17, 13, 0.16)',
+                  display: 'flex', flexDirection: 'column', gap: 2,
+                }}
+              >
+                {cvs.map((cv) => (
+                  <a
+                    key={cv.path}
+                    href={cv.path}
+                    download
+                    style={{
+                      fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.06em',
+                      color: 'var(--ink)', textDecoration: 'none',
+                      padding: '10px 12px', borderRadius: 8,
+                      transition: 'background 0.15s, color 0.15s',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'var(--bg)';
+                      e.currentTarget.style.color = 'var(--ember)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.color = 'var(--ink)';
+                    }}
+                  >
+                    ⤓ {cv.label}
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div
             style={{
               display: 'flex', alignItems: 'center', gap: 4,
-              paddingLeft: 14, marginLeft: 4,
+              paddingLeft: 14, marginLeft: 2,
               borderLeft: '1px solid var(--line-strong)',
             }}
             aria-label="Language toggle"
@@ -129,7 +199,6 @@ const Nav = () => {
             <button
               type="button"
               onClick={() => setLang('en')}
-              data-cursor="hover"
               aria-pressed={lang === 'en'}
               style={langBtnStyle(lang === 'en')}
             >
@@ -139,7 +208,6 @@ const Nav = () => {
             <button
               type="button"
               onClick={() => setLang('fr')}
-              data-cursor="hover"
               aria-pressed={lang === 'fr'}
               style={langBtnStyle(lang === 'fr')}
             >
@@ -164,15 +232,13 @@ const Nav = () => {
       {menuOpen && (
         <div className="nav-mobile-drawer" role="dialog" aria-modal="false">
           {links.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              onClick={(e) => {
-                e.preventDefault();
-                closeAndGo(l.href);
-              }}
-            >
+            <a key={l.href} href={l.href} onClick={(e) => closeAndGo(e, l.href)}>
               {l.label}
+            </a>
+          ))}
+          {cvs.map((cv) => (
+            <a key={cv.path} href={cv.path} download style={{ color: 'var(--ember)' }}>
+              ⤓ CV — {cv.label}
             </a>
           ))}
           <div className="nav-mobile-lang">

@@ -1,14 +1,16 @@
 import React from 'react';
-import { Btn, Eyebrow, FadeIn, Magnetic } from '../shared.jsx';
+import { Btn, Magnetic, Reveal, StageChip } from '../shared.jsx';
 import { useLang, useT } from '../lang/LanguageContext.jsx';
+import { cvFor } from '../lib/cv.js';
 
 const Contact = () => {
   const t = useT();
   const { lang } = useLang();
+  const cvs = Object.values(cvFor(lang));
   return (
     <section
       id="contact"
-      data-screen-label="Contact"
+      data-stage-label={t('07 · CONNECT', '07 · CONTACT')}
       style={{
         position: 'relative',
         padding: '160px 0 100px',
@@ -27,32 +29,34 @@ const Contact = () => {
         }}
       />
       <div className="container" style={{ position: 'relative' }}>
-        <FadeIn><Eyebrow>{t('08 — Contact', '08 — Contact')}</Eyebrow></FadeIn>
-        <FadeIn delay={0.05}>
+        <Reveal>
+          <StageChip code={t('07 · CONNECT', '07 · CONTACT')} status={t('listening', "à l'écoute")} />
+        </Reveal>
+        <Reveal delay={0.05}>
           <h2
             className="display"
             style={{
-              fontSize: 'clamp(60px, 9vw, 148px)', marginTop: 22,
+              fontSize: 'clamp(56px, 8.6vw, 140px)', marginTop: 22,
               lineHeight: 0.92, maxWidth: 1100,
             }}
           >
             {lang === 'fr' ? (
-              <>Construisons<br />le <em style={{ color: 'var(--ember)', fontStyle: 'italic' }}>prochain</em> ensemble.</>
+              <>Construisons<br />la <em style={{ color: 'var(--ember)', fontStyle: 'italic' }}>suite</em> ensemble.</>
             ) : (
               <>Let's build the<br /><em style={{ color: 'var(--ember)', fontStyle: 'italic' }}>next one</em> together.</>
             )}
           </h2>
-        </FadeIn>
-        <FadeIn delay={0.15}>
-          <p style={{ marginTop: 28, color: 'var(--ink-soft)', fontSize: 18, maxWidth: 580 }}>
+        </Reveal>
+        <Reveal delay={0.15}>
+          <p style={{ marginTop: 28, color: 'var(--ink-soft)', fontSize: 18, maxWidth: 600 }}>
             {t(
-              'Open to data science and ML engineering roles, research collaborations, and interesting contract work.',
-              "Ouvert aux postes en data science et ingénierie ML, aux collaborations de recherche, et aux missions intéressantes."
+              'Happily employed, always curious — up for AI-systems talk, agent-design collaborations, and genuinely interesting side quests. Email is the fastest channel; I reply within 24h.',
+              "Heureux en poste, toujours curieux — partant pour parler systèmes d'IA, collaborer sur la conception d'agents, ou tout projet secondaire vraiment intéressant. L'e-mail reste le canal le plus rapide ; je réponds sous 24h."
             )}
           </p>
-        </FadeIn>
+        </Reveal>
 
-        <FadeIn delay={0.25}>
+        <Reveal delay={0.25}>
           <div style={{ marginTop: 48, display: 'flex', flexWrap: 'wrap', gap: 14 }}>
             <Magnetic strength={0.2}>
               <Btn href="mailto:ayomidemathew.oduwole@gmail.com" variant="primary">
@@ -66,12 +70,41 @@ const Contact = () => {
               <Btn href="https://github.com/MathewOduwole" target="_blank" variant="ghost">GitHub ↗</Btn>
             </Magnetic>
           </div>
-        </FadeIn>
+        </Reveal>
 
-        <FadeIn delay={0.35}>
+        <Reveal delay={0.32}>
           <div
             style={{
-              marginTop: 100, paddingTop: 28,
+              marginTop: 36, display: 'flex', flexWrap: 'wrap', gap: 14, alignItems: 'center',
+            }}
+          >
+            <span
+              className="mono"
+              style={{
+                fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase',
+                color: 'var(--muted)',
+              }}
+            >
+              {t('CV / résumé', 'CV')}
+            </span>
+            {cvs.map((cv) => (
+              <Btn
+                key={cv.path}
+                href={cv.path}
+                download
+                variant="ghost"
+                style={{ fontSize: 12.5, padding: '10px 18px' }}
+              >
+                ⤓ {cv.label}
+              </Btn>
+            ))}
+          </div>
+        </Reveal>
+
+        <Reveal delay={0.4}>
+          <div
+            style={{
+              marginTop: 90, paddingTop: 28,
               borderTop: '1px solid var(--line-strong)',
               display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end',
               flexWrap: 'wrap', gap: 24,
@@ -80,12 +113,15 @@ const Contact = () => {
             }}
           >
             <div>© 2026 · Ayomide Mathew Oduwole</div>
-            <div style={{ color: 'var(--ember)' }}>{t('● AVAILABLE · Nantes, FR', '● DISPONIBLE · Nantes, FR')}</div>
+            <div style={{ color: 'var(--ember)' }}>
+              {t('● Operational · Nantes, FR', '● Opérationnel · Nantes, FR')}
+            </div>
             <div>
-              {t('Try the terminal', 'Essayez le terminal')} ↘ <span className="mono" style={{ color: 'var(--ink)' }}>{t('Press ~', 'Appuyez sur ~')}</span>
+              {t('Try the terminal', 'Essayez le terminal')} ↘{' '}
+              <span className="mono" style={{ color: 'var(--ink)' }}>{t('Press ~', 'Appuyez sur ~')}</span>
             </div>
           </div>
-        </FadeIn>
+        </Reveal>
       </div>
     </section>
   );

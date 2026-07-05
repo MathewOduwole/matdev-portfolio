@@ -1,5 +1,6 @@
-/* Portfolio v2 — Light edition
+/* Portfolio v3 — "The Living System"
    Warm editorial paper, deep ink, single ember accent.
+   One continuous pipeline threads the page; scrolling runs the system.
 */
 
 :root {
@@ -10,23 +11,30 @@
   --ink-soft: #4A4438;      /* secondary text */
   --muted: #8A8273;         /* tertiary / labels */
   --line: rgba(20, 17, 13, 0.10);
-  --line-strong: rgba(20, 17, 13, 0.20);
+  --line-strong: rgba(20, 17, 13, 0.22);
 
-  --ember: #C84A12;         /* deeper ember, more print-y on light */
-  --amber: #B8860B;         /* dark gold */
+  --ember: #C84A12;         /* primary accent — print-y ember */
+  --amber: #B8860B;
   --crimson: #A11D1D;
-  --teal: #1F6F6F;          /* secondary accent for variety */
-  --ember-glow: rgba(200, 74, 18, 0.18);
+  --teal: #1F6F6F;
+  --ember-glow: rgba(200, 74, 18, 0.16);
+
+  /* LaRecette.ai guest palette (section 05 only) */
+  --lr-navy: #0B1D3A;
+  --lr-deep: #102A5C;
+  --lr-royal: #2563EB;
+  --lr-sky: #60A5FA;
+  --lr-ice: #E6F0FF;
+  --lr-ivory: #FFF7ED;
+  --lr-slate: #64748B;
 
   --font-display: 'Instrument Serif', 'Playfair Display', Georgia, serif;
   --font-sans: 'Space Grotesk', 'Geist', 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'IBM Plex Mono', monospace;
+  --font-lr: 'Poppins', 'Space Grotesk', system-ui, sans-serif;
 
-  /* Density vars (reserved — no panel wired in v1, but the tokens are here
-     so a future settings toggle can override them without touching CSS) */
-  --density-pad-section: 140px;
-  --density-pad-element: 32px;
-  --density-text-scale: 1;
+  --pad-section: 150px;
+  --rail-x: calc(max((100vw - 1280px) / 2, 0px) + 60px);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -41,14 +49,9 @@ body {
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
-  cursor: none; /* custom cursor takes over on >900px */
 }
 
-@media (max-width: 900px) {
-  body { cursor: auto; }
-}
-
-/* Subtle paper grain — softer on light */
+/* Subtle paper grain */
 body::before {
   content: '';
   position: fixed; inset: 0;
@@ -58,6 +61,11 @@ body::before {
   mix-blend-mode: multiply;
   opacity: 0.22;
 }
+
+/* Lenis smooth-scroll plumbing */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: hidden; }
 
 .display { font-family: var(--font-display); font-weight: 400; letter-spacing: -0.02em; line-height: 1.02; }
 .mono    { font-family: var(--font-mono); letter-spacing: 0; }
@@ -75,8 +83,12 @@ body::before {
   margin: 0 auto;
   padding: 0 56px;
 }
+/* Desktop: reserve a left gutter for the pipeline rail */
+@media (min-width: 1100px) {
+  .container { padding-left: 132px; }
+}
 @media (max-width: 768px) {
-  .container { padding: 0 24px; }
+  .container { padding: 0 22px; }
 }
 
 ::selection { background: var(--ink); color: var(--bg); }
@@ -101,46 +113,150 @@ a.inline-link {
 }
 a.inline-link:hover { color: var(--ember); }
 
-/* Custom cursor — wired by Cursor.jsx; on touch the body cursor is restored */
-.cursor-dot, .cursor-ring {
-  position: fixed; top: 0; left: 0;
-  pointer-events: none;
-  z-index: 9999;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  will-change: transform;
+/* Faint blueprint grid — used inside diagram panels & the arcade */
+.grid-paper {
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 26px 26px;
 }
-.cursor-dot {
-  width: 6px; height: 6px;
+
+/* ---------------------------------------------------------------------------
+   BOOT INTRO — first-visit deploy sequence
+   --------------------------------------------------------------------------- */
+.boot {
+  position: fixed; inset: 0; z-index: 200;
   background: var(--ink);
-  transition: opacity 0.2s, background 0.2s;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
 }
-.cursor-ring {
-  width: 36px; height: 36px;
-  border: 1px solid var(--ink);
-  transition: width 0.25s ease, height 0.25s ease, border-color 0.2s, opacity 0.2s, background 0.2s;
+.boot-inner {
+  width: min(560px, calc(100vw - 48px));
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 2.1;
+  color: rgba(244, 239, 227, 0.85);
 }
-.cursor-ring.hover {
-  width: 56px; height: 56px;
-  border-color: var(--ember);
-  background: var(--ember-glow);
-  mix-blend-mode: multiply;
+.boot-line { white-space: pre; overflow: hidden; }
+.boot-line .ok  { color: #8FBF6F; }
+.boot-line .dim { color: rgba(244, 239, 227, 0.4); }
+.boot-line .live { color: var(--ember); }
+.boot-caret {
+  display: inline-block; width: 8px; height: 15px;
+  background: var(--ember); vertical-align: -2px;
+  animation: bootBlink 0.8s steps(1) infinite;
 }
+.boot-skip {
+  margin-top: 26px;
+  font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: rgba(244, 239, 227, 0.35);
+}
+@keyframes bootBlink { 50% { opacity: 0; } }
 
-/* Dark-surface variant — when the pointer is over an element marked
-   data-cursor-theme="dark" (open terminal, project-card backs, etc.) the
-   cursor flips to a light fill so it stays visible against dark backgrounds. */
-.cursor-dot.dark  { background: var(--bg); }
-.cursor-ring.dark { border-color: var(--bg); mix-blend-mode: normal; }
-.cursor-ring.dark.hover {
-  border-color: var(--ember);
-  background: rgba(200, 74, 18, 0.30);
+/* ---------------------------------------------------------------------------
+   STATUS PILL — bottom-left ops readout
+   --------------------------------------------------------------------------- */
+.status-pill {
+  position: fixed; bottom: 28px; left: 28px; z-index: 60;
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px; border-radius: 999px;
+  background: var(--bg-raised);
+  border: 1px solid var(--line-strong);
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--ink-soft);
+  box-shadow: 0 8px 24px rgba(20, 17, 13, 0.08);
+  cursor: pointer;
+  transition: border-color 0.3s, color 0.3s;
 }
+.status-pill:hover { border-color: var(--ember); }
+.status-pill .led {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #3E8E4E; box-shadow: 0 0 8px rgba(62, 142, 78, 0.9);
+  animation: ledPulse 2.4s ease-in-out infinite;
+}
+.status-pill .sep { color: var(--line-strong); }
+.status-pill .val { color: var(--ink); }
+@keyframes ledPulse { 50% { opacity: 0.45; } }
+@media (max-width: 1100px) { .status-pill { display: none; } }
 
-/* Magnetic hoverable hint */
+/* ---------------------------------------------------------------------------
+   PIPELINE RAIL — the spine that threads every section
+   --------------------------------------------------------------------------- */
+.rail {
+  position: absolute;
+  top: 0; bottom: 0;
+  left: var(--rail-x);
+  width: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+.rail-line {
+  position: absolute; top: 0; bottom: 0; left: 0;
+  width: 1px;
+  background-image: linear-gradient(var(--line-strong) 55%, transparent 55%);
+  background-size: 1px 9px;
+}
+.rail-fill {
+  position: absolute; top: 0; left: -0.5px;
+  width: 2px;
+  background: linear-gradient(180deg, var(--ember) 0%, var(--ember) 92%, transparent 100%);
+  transition: height 0.12s linear;
+}
+.rail-packet {
+  position: absolute; left: -2.5px;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--ember);
+  box-shadow: 0 0 10px var(--ember-glow), 0 0 4px rgba(200, 74, 18, 0.5);
+  animation: packetRun var(--dur, 16s) linear infinite;
+  animation-delay: var(--delay, 0s);
+  opacity: 0;
+}
+@keyframes packetRun {
+  0%   { top: 0%;   opacity: 0; }
+  4%   { opacity: 0.9; }
+  92%  { opacity: 0.9; }
+  100% { top: 100%; opacity: 0; }
+}
+.rail-node {
+  position: absolute; left: 0;
+  transform: translate(-50%, -50%);
+  width: 11px; height: 11px; border-radius: 50%;
+  background: var(--bg);
+  border: 1.5px solid var(--line-strong);
+  transition: border-color 0.4s, background 0.4s, box-shadow 0.4s;
+}
+.rail-node.active {
+  border-color: var(--ember);
+  background: var(--ember);
+  box-shadow: 0 0 0 5px var(--ember-glow);
+}
+.rail-node-label {
+  position: absolute; left: 8px; top: 15px;
+  writing-mode: vertical-rl;
+  font-family: var(--font-mono); font-size: 8.5px;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--muted); white-space: nowrap;
+  transition: color 0.4s;
+}
+.rail-node.active .rail-node-label { color: var(--ember); }
+@media (max-width: 1099px) { .rail { display: none; } }
+
+/* Stage chip — echoed in every section header (visible on all viewports) */
+.stage-chip {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--ember); font-weight: 500;
+}
+.stage-chip .stage-status { color: var(--muted); letter-spacing: 0.14em; }
+.stage-chip .stage-status::before { content: '▸ '; color: var(--ember); }
+
+/* ---------------------------------------------------------------------------
+   MAGNETIC / MARQUEE / SECTION BASE
+   --------------------------------------------------------------------------- */
 .magnet { transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1); }
 
-/* Marquee row */
 @keyframes marquee {
   from { transform: translateX(0); }
   to   { transform: translateX(-50%); }
@@ -153,59 +269,181 @@ a.inline-link:hover { color: var(--ember); }
 .marquee.slow    { animation-duration: 65s; }
 .marquee.reverse { animation-direction: reverse; }
 
-/* Reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* Section base */
-section.section-pad { padding: var(--density-pad-section) 0; }
+section.section-pad { padding: var(--pad-section) 0; }
 
 .sr {
   position: absolute; width: 1px; height: 1px;
   overflow: hidden; clip: rect(0 0 0 0);
 }
 
-/* Terminal entrance */
+/* ---------------------------------------------------------------------------
+   WORK — case studies
+   --------------------------------------------------------------------------- */
+.case {
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
+  background: var(--bg-raised);
+  overflow: hidden;
+}
+.case + .case { margin-top: 40px; }
+.case-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 0;
+}
+.case-grid.flip { grid-template-columns: 0.95fr 1.05fr; }
+.case-copy { padding: 44px 48px; display: flex; flex-direction: column; }
+.case-diagram {
+  position: relative;
+  border-left: 1px solid var(--line);
+  background: var(--bg);
+  min-height: 420px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 28px;
+}
+.case-grid.flip .case-diagram { border-left: none; border-right: 1px solid var(--line); }
+.case-fig {
+  position: absolute; top: 14px; left: 18px;
+  font-family: var(--font-mono); font-size: 9px;
+  letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--muted);
+}
+.case-stamp {
+  position: absolute; bottom: 14px; right: 18px;
+  font-family: var(--font-mono); font-size: 9px;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ember);
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  padding: 4px 8px;
+  transform: rotate(-3deg);
+  opacity: 0.85;
+}
+.case-metrics {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 14px; margin-top: auto; padding-top: 26px;
+  border-top: 1px dashed var(--line-strong);
+}
+.chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.05em;
+  padding: 5px 11px; border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  color: var(--ink-soft); background: var(--bg);
+}
+
+/* Compact earlier-roles rows */
+.role-row {
+  display: grid;
+  grid-template-columns: 190px 1fr auto;
+  gap: 32px; align-items: baseline;
+  padding: 24px 0;
+  border-top: 1px solid var(--line);
+  transition: background 0.25s;
+}
+.role-row:hover { background: rgba(20, 17, 13, 0.025); }
+.role-row-body { max-height: 0; overflow: hidden; transition: max-height 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
+.role-row-wrap.open .role-row-body { max-height: 320px; }
+
+/* ---------------------------------------------------------------------------
+   LARECETTE — guest-palette section
+   --------------------------------------------------------------------------- */
+.lr-brand { font-family: var(--font-lr); font-weight: 600; letter-spacing: -0.01em; }
+.lr-card {
+  background: #FDFBF5;
+  border: 1px solid rgba(11, 29, 58, 0.14);
+  border-radius: 16px;
+}
+.lr-step {
+  display: flex; gap: 18px; align-items: flex-start;
+  padding: 20px 0;
+  border-top: 1px dashed rgba(11, 29, 58, 0.18);
+}
+.lr-step-num {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--lr-royal);
+  border: 1px solid var(--lr-royal);
+  border-radius: 999px;
+  width: 26px; height: 26px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+
+/* ---------------------------------------------------------------------------
+   ARCADE
+   --------------------------------------------------------------------------- */
+.cabinet {
+  border: 1px solid var(--line-strong);
+  border-radius: 18px;
+  background: var(--bg-raised);
+  padding: 26px;
+  display: flex; flex-direction: column; gap: 18px;
+}
+.cabinet-screen {
+  position: relative;
+  border-radius: 12px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  overflow: hidden;
+}
+.cabinet-screen canvas { display: block; width: 100%; height: auto; }
+.cabinet-overlay {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 14px;
+  background: rgba(20, 17, 13, 0.82);
+  color: var(--bg);
+  font-family: var(--font-mono);
+  text-align: center;
+  padding: 20px;
+}
+.cabinet-title {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted);
+}
+.blink { animation: bootBlink 1.1s steps(1) infinite; }
+
+/* ---------------------------------------------------------------------------
+   TERMINAL
+   --------------------------------------------------------------------------- */
 @keyframes termIn {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+.term-panel {
+  position: fixed; bottom: 84px; right: 28px; z-index: 70;
+  width: min(600px, calc(100vw - 56px));
+  height: min(460px, 62vh);
+  background: var(--ink); color: var(--bg);
+  border: 1px solid var(--ink);
+  border-radius: 12px;
+  display: flex; flex-direction: column;
+  box-shadow: 0 24px 60px rgba(20, 17, 13, 0.25);
+  font-family: var(--font-mono);
+  animation: termIn 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (max-width: 640px) {
+  .term-panel { right: 12px; bottom: 76px; width: calc(100vw - 24px); height: 56vh; }
+}
 
 /* ---------------------------------------------------------------------------
-   MOBILE & TABLET — viewport-driven layout collapse.
-   The desktop design assumes two-column grids. Below ~900px the right column
-   gets too narrow to read, so we stack everything vertically. Below ~768px
-   we also hide decorative pieces (hero SVG diagram, hero marquee) and
-   collapse the nav into a hamburger drawer.
+   NAV (mobile pieces)
    --------------------------------------------------------------------------- */
-
-/* Hamburger button — hidden on desktop, shown on mobile */
 .nav-hamburger { display: none; }
 
 @media (max-width: 768px) {
-  /* Tighter container on mobile */
-  .container { padding: 0 20px !important; }
-  section.section-pad { padding: 80px 0 !important; }
+  section.section-pad { padding: 88px 0 !important; }
 
-  /* ---- Nav: hide the desktop links cluster, show hamburger ---- */
   .nav-desktop  { display: none !important; }
   .nav-name     { display: none !important; }
   .nav-hamburger {
     display: inline-flex !important; align-items: center; justify-content: center;
     width: 40px; height: 40px; border-radius: 999px;
     background: transparent; border: 1px solid var(--line-strong);
-    color: var(--ink); cursor: none;
+    color: var(--ink); cursor: pointer;
     font-family: var(--font-mono); font-size: 16px; line-height: 1;
     padding: 0;
   }
-
-  /* Mobile drawer that opens from the hamburger */
   .nav-mobile-drawer {
     position: fixed; top: 72px; left: 16px; right: 16px;
     z-index: 49;
@@ -218,7 +456,7 @@ section.section-pad { padding: var(--density-pad-section) 0; }
     animation: termIn 0.25s cubic-bezier(0.22, 1, 0.36, 1);
   }
   .nav-mobile-drawer a {
-    padding: 14px 12px; border-radius: 10px;
+    padding: 13px 12px; border-radius: 10px;
     text-decoration: none; color: var(--ink);
     font-family: var(--font-mono); font-size: 13px; letter-spacing: 0.14em;
     text-transform: uppercase;
@@ -233,82 +471,51 @@ section.section-pad { padding: var(--density-pad-section) 0; }
   .nav-mobile-lang button {
     background: transparent; border: none; padding: 6px 8px;
     font-family: inherit; font-size: inherit; letter-spacing: inherit;
-    cursor: none;
-  }
-
-  /* ---- Hero: stack columns, hide diagram + marquee ---- */
-  /* Convert the 320vh sticky-pin section into normal flow on mobile —
-     without the diagram, there's nothing to scrub against, and 320vh of
-     dead scroll just before the rest of the page is bad UX. */
-  section[data-screen-label="Hero"]            { height: auto !important; min-height: 100svh; }
-  section[data-screen-label="Hero"] > div      {
-    position: relative !important; height: auto !important;
-    padding: 100px 0 60px !important;
-  }
-  .hero-grid    { grid-template-columns: 1fr !important; gap: 24px !important; }
-  .hero-diagram { display: none !important; }
-  .hero-marquee { display: none !important; }
-  .hero-meta-strip {
-    flex-wrap: wrap !important;
-    gap: 18px 28px !important;
-    margin-top: 40px !important;
-  }
-
-  /* ---- About: stack the 1.3fr / 0.9fr grid ---- */
-  .about-grid {
-    grid-template-columns: 1fr !important;
-    gap: 48px !important;
-    margin-top: 28px !important;
-  }
-
-  /* ---- Work: header stacks, cards shrink ---- */
-  .work-header {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 18px !important;
-  }
-  [data-card="project"] {
-    width: min(86vw, 360px) !important;
-    height: 580px !important;
-  }
-  /* Card inner padding tighter on mobile */
-  [data-card="project"] > div > div {
-    padding: 24px !important;
-  }
-  /* Adjust large numbers + headlines inside the card */
-  [data-card="project"] .display { font-size: 38px !important; }
-
-  /* ---- Playground: stack toy + stats ---- */
-  .playground-intro {
-    grid-template-columns: 1fr !important;
-    gap: 18px !important;
-    align-items: start !important;
-  }
-  .playground-toy { grid-template-columns: 1fr !important; gap: 20px !important; }
-
-  /* ---- Stack: simplify all multi-col rows ---- */
-  .stack-row,
-  .stack-exp-row {
-    grid-template-columns: 1fr !important;
-    gap: 8px !important;
-  }
-  .stack-edu-grid {
-    grid-template-columns: 1fr !important;
-    gap: 56px !important;
-  }
-  /* Slightly smaller experience role text */
-  .stack-exp-row .display { font-size: 22px !important; }
-
-  /* ---- Contact: tighter padding, smaller giant headline ---- */
-  section#contact {
-    padding: 100px 0 60px !important;
+    cursor: pointer;
   }
 }
+@media (min-width: 769px) and (max-width: 1100px) {
+  .nav-name { display: none !important; }
+}
 
-/* Slightly looser breakpoint for tablet — keep two-column where it still fits
-   but loosen any overly tight clamps. */
-@media (max-width: 900px) and (min-width: 769px) {
-  .hero-grid       { grid-template-columns: 1fr 1fr !important; }
-  .hero-meta-strip { flex-wrap: wrap !important; gap: 18px 28px !important; }
-  .about-grid      { grid-template-columns: 1fr !important; gap: 48px !important; }
+/* ---------------------------------------------------------------------------
+   RESPONSIVE — section-level collapses
+   --------------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  .hero-grid    { grid-template-columns: 1fr !important; }
+  .hero-diagram { display: none !important; }
+  .case-grid, .case-grid.flip { grid-template-columns: 1fr !important; }
+  .case-diagram {
+    border-left: none !important; border-right: none !important;
+    border-top: 1px solid var(--line);
+    min-height: 320px;
+  }
+  .about-grid   { grid-template-columns: 1fr !important; gap: 48px !important; }
+  .lab-grid, .lab-intro { grid-template-columns: 1fr !important; }
+  .recette-grid { grid-template-columns: 1fr !important; }
+  .arcade-grid  { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 768px) {
+  .hero-marquee { display: none !important; }
+  .hero-meta-strip { flex-wrap: wrap !important; gap: 18px 28px !important; margin-top: 40px !important; }
+  .case-copy { padding: 26px 22px !important; }
+  .case-metrics { grid-template-columns: repeat(2, 1fr) !important; }
+  .role-row { grid-template-columns: 1fr !important; gap: 6px !important; }
+  .stack-row, .stack-exp-row { grid-template-columns: 1fr !important; gap: 8px !important; }
+  .stack-edu-grid { grid-template-columns: 1fr !important; gap: 56px !important; }
+  .stack-exp-row .display { font-size: 22px !important; }
+}
+
+/* ---------------------------------------------------------------------------
+   REDUCED MOTION
+   --------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .rail-packet { display: none; }
 }

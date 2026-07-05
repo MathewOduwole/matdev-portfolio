@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Btn, Eyebrow, FadeIn } from '../shared.jsx';
+import { Btn, Reveal, SectionHead } from '../shared.jsx';
 import { useLang, useT } from '../lang/LanguageContext.jsx';
 
 const W = 600;
@@ -9,8 +9,8 @@ const SEED_POINTS = [
   { x: 280, y: 130 }, { x: 360, y: 95  }, { x: 440, y: 80 }, { x: 520, y: 60 },
 ];
 
-// Inline interactive — a tiny linear-regression toy. Click the canvas to add
-// points; the line refits via least-squares in real time and R² updates.
+// A tiny linear-regression toy. Click the canvas to add points; the line
+// refits via least-squares in real time and R² updates.
 const RegressionToy = () => {
   const t = useT();
   const [points, setPoints] = useState(SEED_POINTS);
@@ -46,17 +46,15 @@ const RegressionToy = () => {
 
   let lineEls = null;
   if (stats) {
-    const x1 = 0;
-    const x2 = W;
-    const y1 = stats.m * x1 + stats.b;
-    const y2 = stats.m * x2 + stats.b;
-    lineEls = <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="var(--ember)" strokeWidth="2" />;
+    const y1 = stats.m * 0 + stats.b;
+    const y2 = stats.m * W + stats.b;
+    lineEls = <line x1={0} y1={y1} x2={W} y2={y2} stroke="var(--ember)" strokeWidth="2" />;
   }
 
   return (
     <div style={{ marginTop: 36 }}>
       <div
-        className="playground-toy"
+        className="lab-grid"
         style={{
           display: 'grid', gridTemplateColumns: '1.5fr 1fr',
           gap: 28, alignItems: 'start',
@@ -115,20 +113,18 @@ const RegressionToy = () => {
           </div>
 
           <div style={{ marginTop: 24, display: 'grid', gap: 12, fontFamily: 'var(--font-mono)', fontSize: 13 }}>
+            {[
+              [t('n (points)', 'n (points)'), points.length],
+              [t('slope (m)', 'pente (m)'), stats ? stats.m.toFixed(4) : '—'],
+              [t('intercept (b)', 'ordonnée (b)'), stats ? stats.b.toFixed(2) : '—'],
+            ].map(([k, v]) => (
+              <div key={k} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed var(--line)', paddingBottom: 10 }}>
+                <span style={{ color: 'var(--muted)' }}>{k}</span>
+                <span style={{ color: 'var(--ink)' }}>{v}</span>
+              </div>
+            ))}
             <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed var(--line)', paddingBottom: 10 }}>
-              <span style={{ color: 'var(--muted)' }}>{t('n (points)', 'n (points)')}</span>
-              <span style={{ color: 'var(--ink)' }}>{points.length}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed var(--line)', paddingBottom: 10 }}>
-              <span style={{ color: 'var(--muted)' }}>{t('slope (m)', 'pente (m)')}</span>
-              <span style={{ color: 'var(--ink)' }}>{stats ? stats.m.toFixed(4) : '—'}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed var(--line)', paddingBottom: 10 }}>
-              <span style={{ color: 'var(--muted)' }}>{t('intercept (b)', 'ordonnée (b)')}</span>
-              <span style={{ color: 'var(--ink)' }}>{stats ? stats.b.toFixed(2) : '—'}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed var(--line)', paddingBottom: 10 }}>
-              <span style={{ color: 'var(--muted)' }}>{t('R² (fit quality)', 'R² (qualité d\'ajustement)')}</span>
+              <span style={{ color: 'var(--muted)' }}>{t('R² (fit quality)', "R² (qualité d'ajustement)")}</span>
               <span style={{ color: 'var(--ember)' }}>{stats ? stats.r2.toFixed(3) : '—'}</span>
             </div>
           </div>
@@ -143,8 +139,8 @@ const RegressionToy = () => {
           </div>
           <p style={{ marginTop: 18, color: 'var(--ink-soft)', fontSize: 13, lineHeight: 1.6 }}>
             {t(
-              'Click anywhere on the canvas to add a data point. The line refits via least-squares in real time. The dashed segments are residuals — what your model gets wrong.',
-              "Cliquez n'importe où sur le canvas pour ajouter un point. La droite se réajuste par moindres carrés en temps réel. Les segments en pointillés sont les résidus — ce que votre modèle se trompe."
+              'Click anywhere on the canvas to add a data point. The line refits via least-squares in real time. The dashed segments are residuals — what the model gets wrong.',
+              "Cliquez n'importe où sur le canvas pour ajouter un point. La droite se réajuste par moindres carrés en temps réel. Les segments en pointillés sont les résidus — là où le modèle se trompe."
             )}
           </p>
         </div>
@@ -153,49 +149,48 @@ const RegressionToy = () => {
   );
 };
 
-const Playground = () => {
+const Lab = () => {
   const t = useT();
   const { lang } = useLang();
   return (
     <section
-      id="playground"
-      data-screen-label="Playground"
+      id="lab"
+      data-stage-label={t('04 · OBSERVE', '04 · OBSERVATION')}
       className="section-pad"
       style={{ background: 'var(--bg)' }}
     >
       <div className="container">
-        <FadeIn><Eyebrow>{t('04 — Playground', '04 — Playground')}</Eyebrow></FadeIn>
-        <FadeIn delay={0.1}>
-          <div
-            className="playground-intro"
-            style={{
-              display: 'grid', gridTemplateColumns: '1.4fr 1fr',
-              gap: 60, marginTop: 24, alignItems: 'end',
-            }}
-          >
-            <h2
-              className="display"
-              style={{ fontSize: 'clamp(40px, 5.5vw, 76px)', lineHeight: 0.98, maxWidth: 700 }}
-            >
-              {lang === 'fr' ? (
-                <>Le modèle le plus simple<br />en apprend le plus.</>
-              ) : (
-                <>The simplest model<br />still teaches the most.</>
-              )}
-            </h2>
-            <p style={{ color: 'var(--ink-soft)', fontSize: 16, lineHeight: 1.6, maxWidth: 380 }}>
-              {t(
-                "A live linear regression — plot points, watch the line refit. It's the smallest meaningful demo of what every ML system does underneath: fit, evaluate, iterate.",
-                "Une régression linéaire en direct — placez des points, regardez la droite se réajuster. La plus petite démo significative de ce que tout système ML fait sous le capot : ajuster, évaluer, itérer."
-              )}
-            </p>
-          </div>
-        </FadeIn>
+        <SectionHead
+          code={t('04 · OBSERVE', '04 · OBSERVATION')}
+          status={t('watching', 'en veille')}
+          title={t(
+            <>The simplest model<br />still teaches the most.</>,
+            <>Le modèle le plus simple<br />vous en apprend le plus.</>
+          )}
+          max={760}
+        />
+        <Reveal delay={0.12}>
+          <p style={{ color: 'var(--ink-soft)', fontSize: 16, lineHeight: 1.6, maxWidth: 520, marginTop: 26 }}>
+            {lang === 'fr' ? (
+              <>
+                Aucun des systèmes ci-dessus ne part en prod sans être mesuré. Voici la plus
+                petite boucle d'évaluation que vous puissiez lancer vous-même : placez des points,
+                regardez l'ajustement, lisez le R². <em>Ajuster, évaluer, itérer.</em>
+              </>
+            ) : (
+              <>
+                Every system above only ships because it's measured. Here's the smallest
+                evaluation loop you can run yourself: plot points, watch the fit, read the R².{' '}
+                <em>Fit, evaluate, iterate.</em>
+              </>
+            )}
+          </p>
+        </Reveal>
 
-        <FadeIn delay={0.2}><RegressionToy /></FadeIn>
+        <Reveal delay={0.2}><RegressionToy /></Reveal>
       </div>
     </section>
   );
 };
 
-export default Playground;
+export default Lab;
